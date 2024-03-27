@@ -1,0 +1,1 @@
+declare module '@ckeditor/ckeditor5-inspector'; // until CKEditor team releases proper types
