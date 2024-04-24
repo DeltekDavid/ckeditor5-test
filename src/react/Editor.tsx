@@ -21,6 +21,7 @@ import TrackChanges from '@ckeditor/ckeditor5-track-changes/src/trackchanges';
 import CloudServices from '@ckeditor/ckeditor5-cloud-services/src/cloudservices';
 import RealTimeCollaborativeTrackChanges from '@ckeditor/ckeditor5-real-time-collaboration/src/realtimecollaborativetrackchanges';
 import RealTimeCollaborativeComments from '@ckeditor/ckeditor5-real-time-collaboration/src/realtimecollaborativecomments';
+import TrackChangesEditing from '@ckeditor/ckeditor5-track-changes/src/trackchangesediting';
 
 
 export interface EditorProps {
@@ -48,6 +49,9 @@ const Editor: React.FC<EditorProps> = ({ tokenUrl, webSocketUrl, channelId, init
                     UnitsOfMeasure,
                     BracketOptionPlugin
                 ],
+                toolbar: [
+                    'trackChanges',
+                ],
                 bracketOption: {
                     bracketOptionRenderer: (
                         id: string,
@@ -57,7 +61,7 @@ const Editor: React.FC<EditorProps> = ({ tokenUrl, webSocketUrl, channelId, init
                         domElement: HTMLElement,
                     ) => {
                         const root = createRoot(domElement);
-            
+
                         root.render(
                             <BracketOption id={id} value={value} initialOptedState={optedState} onOptedStateChanged={onOptedStateChanged} />
                         );
@@ -74,9 +78,10 @@ const Editor: React.FC<EditorProps> = ({ tokenUrl, webSocketUrl, channelId, init
             data={initialData}
             onReady={editor => {
                 // You can store the "editor" and use when it is needed.
-                console.log('Editor is ready to use!', editor);
                 CKEditorInspector.detach('TestEditor');
                 CKEditorInspector.attach({ 'TestEditor': editor });
+                editor.commands.get( 'trackChanges' )?.execute(); // enable track changes by default
+                console.log('Editor is ready to use!', editor);
             }}
             onChange={(event) => {
                 console.log(event);
