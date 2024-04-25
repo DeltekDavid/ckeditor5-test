@@ -1,6 +1,6 @@
 import { OptedState } from "../model/optionItemState";
 
-declare module "@ckeditor/ckeditor5-core" {
+declare module "@ckeditor/ckeditor5-core" { // augment module to avoid TypeScript errors
     interface EditorConfig {
         bracketOption?: {
             bracketOptionRenderer: (
@@ -14,6 +14,9 @@ declare module "@ckeditor/ckeditor5-core" {
         cloudServices: {
             tokenUrl: string,
             webSocketUrl: string
+        },
+        presenceList: {
+            container: HTMLElement | null,
         },
     }
   }
