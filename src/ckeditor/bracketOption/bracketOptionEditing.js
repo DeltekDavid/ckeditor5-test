@@ -1,6 +1,8 @@
 import { Plugin } from '@ckeditor/ckeditor5-core'
-
 import { Widget, toWidget, viewToModelPositionOutsideModelElement } from '@ckeditor/ckeditor5-widget';
+
+import ToggleBracketOptionCommand from './toggleBracketOptionCommand'
+import { getItemByAttribute, reRunConverters } from '../utils';
 
 export default class BracketOptionEditing extends Plugin {
     static get requires() {
@@ -8,15 +10,84 @@ export default class BracketOptionEditing extends Plugin {
     }
 
     init() {
-        console.log('BracketOptionEditing was initialized')
 
         this._defineSchema()
         this._defineConverters()
+
+        this.editor.commands.add('toggleBracketOption', new ToggleBracketOptionCommand(this.editor))
 
         this.editor.editing.mapper.on(
             'viewToModelPosition',
             viewToModelPositionOutsideModelElement(this.editor.model, viewElement => viewElement.hasClass('bracket-option'))
         );
+
+        // Subscribe to model changes so we can re-run the converters 
+        // when another user updates the model in Real-Time Collaboration.
+        // (Otherwise our custom React widgets won't update in response to other user's changes.)
+        this.runConvertersOnModelChange();
+
+        // Enable "toggle bracket option" command when track changes are enabled.
+        const trackChangesEditing = this.editor.plugins.get('TrackChangesEditing');
+        if (trackChangesEditing) {
+            this.enableTrackChangeIntegration(trackChangesEditing);
+        }
+
+        console.log('BracketOptionEditing was initialized')
+    }
+
+    runConvertersOnModelChange() {
+        this.editor.model.document.on('change:data', () => {
+            reRunConverters(this.editor);
+        });
+    }
+
+    enableTrackChangeIntegration(trackChangesPlugin) {
+        trackChangesPlugin.enableCommand('toggleBracketOption', (executeCommand, options = {}) => {
+            const selection = this.editor.model.document.selection;
+
+            if (selection.isCollapsed) {
+                // If the selection is collapsed, execute the default behavior of the command.
+                executeCommand(options);
+
+                return;
+            }
+
+            this.editor.model.change(() => {
+                const selectionRanges = Array.from(selection.getRanges());
+                for (const selectionRange of selectionRanges) {
+                    // Is a bracket option selected?
+                    const item = getItemByAttribute(selectionRange, 'optedState');
+                    if (!item) {
+                        continue;
+                    }
+                    trackChangesPlugin.markInlineFormat(
+                        selectionRange,
+                        {
+                            commandName: 'toggleBracketOption',
+                            commandParams: [{ bracketOptionId: item.getAttribute('id'), bracketOptionValue: item.getAttribute('value'), newState: options.newState }]
+                        }
+                    );
+                }
+            });
+        });
+
+        // Create track change descriptions for bracket option toggles.
+        trackChangesPlugin._descriptionFactory.registerDescriptionCallback(suggestion => {
+            const { data } = suggestion;
+
+            if (!data || data.commandName !== 'toggleBracketOption') {
+                return;
+            }
+
+            const optionState = data.commandParams?.[0]?.newState;
+            const optionValue = data.commandParams?.[0]?.bracketOptionValue;
+            const content = optionState === 'OPTED_IN' ? `Selected [${optionValue}]` : `Deselected [${optionValue}]`;
+
+            return {
+                type: 'format',
+                content
+            };
+        });
     }
 
     _defineSchema() {
@@ -37,7 +108,6 @@ export default class BracketOptionEditing extends Plugin {
 
     _defineConverters() {
         const editor = this.editor
-        const model = editor.model
         const conversion = editor.conversion
         const renderBracketOption = editor.config.get('bracketOption').bracketOptionRenderer
 
@@ -107,9 +177,7 @@ export default class BracketOptionEditing extends Plugin {
                     // by a UIElement in the view. You are using a function (renderer) passed as
                     // editor.config.bracket-options#bracketOptionRenderer.
                     renderBracketOption(id, value, optedState, (newState) => {
-                        model.change(writer => {
-                            writer.setAttribute('optedState', newState, modelElement)
-                        })
+                        editor.execute('toggleBracketOption', { bracketOptionId: id, newState })
                         console.log(newState)
                     }, domElement);
                 })

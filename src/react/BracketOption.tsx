@@ -17,18 +17,18 @@ const BracketOption: React.FC<BracketOptionProps> = ({ id, value, initialOptedSt
 
     }, [onOptedStateChanged, optedState]);
 
-    let buttonStyle = {};
+    let buttonClassName = 'option-item ';
     if (optedState === OptedState.OptedIn) {
-        buttonStyle = { backgroundColor: 'green' };
+        buttonClassName += 'option-item-opted-in';
     } else if (optedState === OptedState.OptedOut) {
-        buttonStyle = { backgroundColor: 'white' };
+        buttonClassName += 'option-item-opted-out';
     } else {
-        buttonStyle = { backgroundColor: 'lightgray' };
+        buttonClassName += 'option-item-undecided';
     }
 
     return (
         <span data-id={id} data-opted-state={optedState}>
-            <button id={id} onClick={handleClick} style={buttonStyle}>{value}</button>
+            <button id={id} onClick={handleClick} className={buttonClassName}>{value}</button>
         </span>
     );
 };
