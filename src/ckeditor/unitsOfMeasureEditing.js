@@ -1,6 +1,6 @@
 import { Plugin } from '@ckeditor/ckeditor5-core'
 
-import { Widget, toWidget, toWidgetEditable, viewToModelPositionOutsideModelElement } from '@ckeditor/ckeditor5-widget';
+import { toWidgetEditable, viewToModelPositionOutsideModelElement } from '@ckeditor/ckeditor5-widget';
 
 export default class UnitsOfMeasureEditing extends Plugin {
     init() {
@@ -13,6 +13,20 @@ export default class UnitsOfMeasureEditing extends Plugin {
             'viewToModelPosition',
             viewToModelPositionOutsideModelElement(this.editor.model, viewElement => viewElement.hasClass('units-of-measure'))
         );
+
+        // Subscribe to model changes so we can re-run the converters 
+        // when another user updates the model in Real-Time Collaboration.
+        // (Otherwise our custom React widgets won't update in response to other user's changes.)
+        this.editor.model.document.on( 'change:data', () => {
+            const root = this.editor.model.document.getRoot();
+            const range = this.editor.model.createRangeIn( root );
+        
+            for ( const value of range.getWalker( { ignoreElementEnd: true } ) ) {
+                if( value.item.is( 'element' ) && value.item.name === 'bracketOption'  ){
+                    this.editor.editing.reconvertItem( value.item );
+                }
+            }
+        })
     }
 
     _defineSchema() {
