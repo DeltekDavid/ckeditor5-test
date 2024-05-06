@@ -9,14 +9,14 @@ declare module "@ckeditor/ckeditor5-core" { // augment module to avoid TypeScrip
                 optedState: OptedState,
                 onOptedStateChanged: (newState: OptedState) => void,
                 domElement: HTMLElement,
-            )=> void;
+            ) => void;
         },
-        cloudServices: {
+        cloudServices?: {
             tokenUrl: string,
             webSocketUrl: string
         },
-        presenceList: {
+        presenceList?: {
             container: HTMLElement | null,
         },
     }
-  }
+}
