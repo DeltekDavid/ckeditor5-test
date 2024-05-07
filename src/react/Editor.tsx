@@ -13,52 +13,72 @@ import BracketOption from '.././react/BracketOption';
 
 export interface EditorProps {
     initialData?: string,
+    channelId: string,
+    editorSuffix: string,
 }
 
-const Editor: React.FC<EditorProps> = ({ initialData }) => {
+const Editor: React.FC<EditorProps> = (
+    {
+        initialData,
+        channelId,
+        editorSuffix = "1",
+    }) => {
 
+    const editorId = 'TestEditor' + editorSuffix;
     return (
         <div>
-            <div className="flex-container">
-                <div className="flex-item">
-                    <CKEditor
-                        editor={ClassicalEditorBuild.ClassicEditor}
-                        config={{
-                            bracketOption: {
-                                bracketOptionRenderer: (
-                                    id: string,
-                                    value: string,
-                                    optedState: OptedState,
-                                    onOptedStateChanged: (newState: OptedState) => void,
-                                    domElement: HTMLElement,
-                                ) => {
-                                    const root = createRoot(domElement);
+            <CKEditor
+                editor={ClassicalEditorBuild.ClassicEditor}
+                config={{
+                    collaboration: {
+                        channelId: channelId + editorSuffix,
+                    },
+                    bracketOption: {
+                        bracketOptionRenderer: (
+                            id: string,
+                            value: string,
+                            optedState: OptedState,
+                            onOptedStateChanged: (newState: OptedState) => void,
+                            domElement: HTMLElement,
+                        ) => {
+                            const root = createRoot(domElement);
 
-                                    root.render(
-                                        <BracketOption id={id} value={value} initialOptedState={optedState} onOptedStateChanged={onOptedStateChanged} />
-                                    );
-                                }
-                            },
-                        }}
-                        data={initialData}
-                        onReady={editor => {
-                            // You can store the "editor" and use when it is needed.
-                            CKEditorInspector.detach('TestEditor');
-                            CKEditorInspector.attach({ 'TestEditor': editor });
-                            console.log('Editor is ready to use!', editor);
-                        }}
-                        onChange={(event) => {
-                            console.log(event);
-                        }}
-                        onBlur={(event, editor) => {
-                            console.log('Blur.', editor);
-                        }}
-                        onFocus={(event, editor) => {
-                            console.log('Focus.', editor);
-                        }}
-                    />
-                </div>
-            </div>
+                            root.render(
+                                <BracketOption id={id} value={value} initialOptedState={optedState} onOptedStateChanged={onOptedStateChanged} />
+                            );
+                        }
+                    },
+                }}
+                data={initialData}
+                onReady={editor => {
+                    // Attach inspector
+                    CKEditorInspector.detach(editorId + editorSuffix);
+                    CKEditorInspector.attach({ editorId: editor });
+
+                    // Hide toolbar by default and show it when editor is focused
+                    const toolbarElement = editor.ui.view.toolbar.element;
+                    if (toolbarElement) {
+                        toolbarElement.style.display = 'none';
+                    }
+                    editor.ui.focusTracker.on( 'change:isFocused', ( evt, data, isFocused ) => {
+                        const toolbar = editor.ui.view.toolbar.element;
+                        if (toolbar) {
+                            toolbar.style.display = isFocused ? 'flex' : 'none';
+                        }
+                    } );
+
+                    console.log(`Editor "${editorId}" is ready to use!`, editor);
+                }}
+                onChange={(event) => {
+                    console.log(event);
+                }}
+                onBlur={(event, editor) => {
+                    console.log('Blur.', editor);
+                }}
+                onFocus={(event, editor) => {
+                    console.log('Focus.', editor);
+                }}
+            />
         </div>
     );
 }

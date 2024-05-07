@@ -12,13 +12,30 @@ code {
     monospace;
 }
 
-.flex-container {
+.outer-container {
   display: flex;
   flex-direction: row;
 }
 
-.flex-item {
+.sidebar {
   min-width: 300px;
+}
+
+.editor-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-instance {
+  border-radius: 4px;
+  border-left: 22px solid #a78966;
+  border-top: 1px solid lightslategray;
+  border-right: 1px solid lightslategray;
+  box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.1)
+}
+
+.editor-instance:last-of-type {
+  border-bottom: 1px solid lightgray;
 }
 
 .option-item {
