@@ -24,6 +24,7 @@ const App: React.FC = () => {
     return (
         <div>
             <h2>Using CKEditor&nbsp;5 in React</h2>
+            <p>Click a paragraph to edit it.</p>
             <div>
                 <div ref={presenceListElementRef}></div>
             </div>
