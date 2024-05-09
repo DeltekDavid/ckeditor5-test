@@ -28,7 +28,7 @@ const Editor: React.FC<EditorProps> = (
 
     const [isActive, setIsActive] = React.useState(false);
     const editorId = 'TestEditor' + editorSuffix;
-    const [editorData, setEditorData] = React.useState(initialData);
+    const [paragraphContent, setParagraphContent] = React.useState(initialData);
     return (
         <div>
             {isActive ?
@@ -54,7 +54,7 @@ const Editor: React.FC<EditorProps> = (
                             }
                         },
                     }}
-                    data={editorData}
+                    data={paragraphContent}
                     onReady={editor => {
                         // Attach inspector
                         CKEditorInspector.detach(editorId + editorSuffix);
@@ -66,7 +66,7 @@ const Editor: React.FC<EditorProps> = (
                         // (CKEditor5 doesn't yet have a simply way to connect/disconnect from RTC.)
                         editor.ui.focusTracker.on('change:isFocused', (evt, data, isFocused) => {
                             if (!isFocused) {
-                                setEditorData(editor.getData());
+                                setParagraphContent(editor.getData());
                                 setIsActive(false);
                             }
                         });
@@ -83,8 +83,10 @@ const Editor: React.FC<EditorProps> = (
                         console.log('Focus.', editor);
                     }}
                 /> :
+                // Render plain HTML rather than CKEditor when the editor is not active.
+                // Clicking it will activate CKEditor.
                 <div onClick={() => setIsActive(true)}>
-                    {parse(editorData!)}
+                    {parse(paragraphContent!)}
                 </div>}
         </div>
     );
