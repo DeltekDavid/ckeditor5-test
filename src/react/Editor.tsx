@@ -73,15 +73,6 @@ const Editor: React.FC<EditorProps> = (
 
                         console.log(`Editor "${editorId}" is ready to use!`, editor);
                     }}
-                    onChange={(event) => {
-                        console.log(event);
-                    }}
-                    onBlur={(event, editor) => {
-                        console.log('Blur.', editor);
-                    }}
-                    onFocus={(event, editor) => {
-                        console.log('Focus.', editor);
-                    }}
                 /> :
                 // Render plain HTML rather than CKEditor when the editor is not active.
                 // Clicking it will activate CKEditor.
