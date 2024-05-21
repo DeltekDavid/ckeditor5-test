@@ -4,8 +4,8 @@ import {
     createLabeledInputText,
     ButtonView,
     submitHandler,
-} from '@ckeditor/ckeditor5-ui';
-import { icons } from '@ckeditor/ckeditor5-core';
+    icons,
+} from 'ckeditor5';
 
 export default class FormView extends View {
     constructor(locale) {

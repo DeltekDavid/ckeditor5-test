@@ -1,5 +1,5 @@
-import { Plugin } from '@ckeditor/ckeditor5-core'
-import { toWidgetEditable, viewToModelPositionOutsideModelElement } from '@ckeditor/ckeditor5-widget';
+import { Plugin } from 'ckeditor5'
+import { toWidgetEditable, viewToModelPositionOutsideModelElement } from 'ckeditor5';
 
 import CreateUnitsOfMeasureCommand from './createUnitsOfMeasureCommand';
 import ModifySelectedUnitsOfMeasureCommand from './modifySelectedUnitsOfMeasureCommand';

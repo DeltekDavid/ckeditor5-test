@@ -1,14 +1,14 @@
-import { Plugin } from '@ckeditor/ckeditor5-core';
+import { Plugin } from 'ckeditor5';
 import {
     ButtonView,
     ContextualBalloon,
     clickOutsideHandler,
     addListToDropdown,
     createDropdown,
-    ViewModel
-} from '@ckeditor/ckeditor5-ui';
-import { Collection } from '@ckeditor/ckeditor5-utils';
-import ClickObserver from '@ckeditor/ckeditor5-engine/src/view/observer/clickobserver';
+    ViewModel,
+    ClickObserver
+} from 'ckeditor5';
+import { Collection } from 'ckeditor5';
 import FormView from './unitsOfMeasureFormView';
 
 import { getItemByName, reRunConverters } from '../utils';

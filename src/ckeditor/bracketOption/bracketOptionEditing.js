@@ -1,5 +1,5 @@
-import { Plugin } from '@ckeditor/ckeditor5-core'
-import { Widget, toWidget, viewToModelPositionOutsideModelElement } from '@ckeditor/ckeditor5-widget';
+import { Plugin } from 'ckeditor5'
+import { Widget, toWidget, viewToModelPositionOutsideModelElement } from 'ckeditor5';
 
 import ToggleBracketOptionCommand from './toggleBracketOptionCommand'
 import { getItemByAttribute, reRunConverters } from '../utils';
