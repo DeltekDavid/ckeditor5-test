@@ -27,9 +27,11 @@ export default class BracketOptionEditing extends Plugin {
         this.runConvertersOnModelChange();
 
         // Enable "toggle bracket option" command when track changes are enabled.
-        const trackChangesEditing = this.editor.plugins.get('TrackChangesEditing');
-        if (trackChangesEditing) {
-            this.enableTrackChangeIntegration(trackChangesEditing);
+        if (this.editor.plugins.has('TrackChangesEditing')) {
+            const trackChangesEditing = this.editor.plugins.get('TrackChangesEditing');
+            if (trackChangesEditing) {
+                this.enableTrackChangeIntegration(trackChangesEditing);
+            }
         }
 
         console.log('BracketOptionEditing was initialized')

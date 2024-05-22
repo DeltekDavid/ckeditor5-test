@@ -19,9 +19,11 @@ export default class UnitsOfMeasureEditing extends Plugin {
         );
 
         // Enable "create units of measure" command when track changes are enabled.
-        const trackChangesEditing = this.editor.plugins.get('TrackChangesEditing');
-        if (trackChangesEditing) {
-            this.enableTrackChangeIntegration(trackChangesEditing);
+        if (this.editor.plugins.has('TrackChangesEditing')) {
+            const trackChangesEditing = this.editor.plugins.get('TrackChangesEditing');
+            if (trackChangesEditing) {
+                this.enableTrackChangeIntegration(trackChangesEditing);
+            }
         }
 
         console.log('UnitsOfMeasureEditing was initialized')
