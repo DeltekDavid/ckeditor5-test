@@ -31,7 +31,7 @@ const App: React.FC = () => {
             <div className="outer-container">
                 {cloudConfig
                     && <CKEditorContext
-                        context={ClassicalEditorBuild.Context}
+                        context={ClassicalEditorBuild.OurContext}
                         config={
                             {
                                 cloudServices: {
@@ -42,7 +42,7 @@ const App: React.FC = () => {
                                     channelId: cloudConfig!.channelId
                                 },
                                 presenceList: {
-                                    container: presenceListElementRef.current
+                                    container: presenceListElementRef.current ?? undefined
                                 },
                                 sidebar: {
                                     container: sidebarElementRef.current!
