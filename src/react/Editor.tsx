@@ -33,7 +33,7 @@ const Editor: React.FC<EditorProps> = (
         <div>
             {isActive ?
                 <CKEditor
-                    editor={ClassicalEditorBuild.ClassicEditor}
+                    editor={ClassicalEditorBuild.OurClassicEditor}
                     config={{
                         collaboration: {
                             channelId: channelId + editorSuffix,
