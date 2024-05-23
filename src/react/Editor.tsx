@@ -26,12 +26,13 @@ const Editor: React.FC<EditorProps> = (
         editorSuffix = "1",
     }) => {
 
+    const alwaysRenderEditor = true; // set to true to always render the editor, even when it's not active. Useful for debugging.
     const [isActive, setIsActive] = React.useState(false);
     const editorId = 'TestEditor' + editorSuffix;
     const [paragraphContent, setParagraphContent] = React.useState(initialData);
     return (
         <div>
-            {isActive ?
+            {isActive || alwaysRenderEditor ?
                 <CKEditor
                     editor={ClassicalEditorBuild.OurClassicEditor}
                     config={{
