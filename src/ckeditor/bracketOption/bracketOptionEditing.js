@@ -124,7 +124,8 @@ export default class BracketOptionEditing extends Plugin {
                     {
                         id: viewElement.getAttribute('data-id'), // read custom attributes ("data-" prefix) from our span
                         value: viewElement.getChild(0).data, // read the text content of the span
-                        optedState: viewElement.getAttribute('data-opted-state')
+                        optedState: viewElement.getAttribute('data-opted-state'),
+                        isEditable: viewElement.getAttribute('data-editable') === 'true',
                     });
             }
         })
@@ -141,7 +142,8 @@ export default class BracketOptionEditing extends Plugin {
                 const span = viewWriter.createContainerElement('span', {
                     class: 'bracket-option',
                     'data-id': modelElement.getAttribute('id'),
-                    'data-opted-state': modelElement.getAttribute('optedState')
+                    'data-opted-state': modelElement.getAttribute('optedState'),
+                    'data-editable': modelElement.getAttribute('isEditable') === true ? 'true' : 'false',
                 });
                 const innerText = viewWriter.createText(modelElement.getAttribute('value'));
                 viewWriter.insert(viewWriter.createPositionAt(span, 0), innerText);
@@ -163,6 +165,7 @@ export default class BracketOptionEditing extends Plugin {
                 const id = modelElement.getAttribute('id')
                 const value = modelElement.getAttribute('value')
                 const optedState = modelElement.getAttribute('optedState')
+                const isEditable = modelElement.getAttribute('isEditable')
 
                 // The outermost <span class="bracket-option" data-id="..."></span> element.
                 const span = viewWriter.createContainerElement('span', {
@@ -178,7 +181,7 @@ export default class BracketOptionEditing extends Plugin {
                     // This is the place where React renders the actual bracket-option preview hosted
                     // by a UIElement in the view. You are using a function (renderer) passed as
                     // editor.config.bracket-options#bracketOptionRenderer.
-                    renderBracketOption(id, value, optedState, (newState) => {
+                    renderBracketOption(id, value, optedState, isEditable, (newState) => {
                         editor.execute('toggleBracketOption', { bracketOptionId: id, newState })
                         console.log(newState)
                     }, domElement);

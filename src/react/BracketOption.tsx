@@ -5,10 +5,11 @@ interface BracketOptionProps {
     id: string;
     value: string;
     initialOptedState: OptedState;
+    isEditable: boolean;
     onOptedStateChanged: (newState: OptedState) => void;
 }
 
-const BracketOption: React.FC<BracketOptionProps> = ({ id, value, initialOptedState, onOptedStateChanged }) => {
+const BracketOption: React.FC<BracketOptionProps> = ({ id, value, initialOptedState, isEditable, onOptedStateChanged }) => {
     const [optedState, setOptedState] = React.useState<OptedState>(initialOptedState);
     const handleClick = React.useCallback(() => {
         const newState = optedState === OptedState.OptedIn ? OptedState.OptedOut : OptedState.OptedIn;
@@ -24,6 +25,10 @@ const BracketOption: React.FC<BracketOptionProps> = ({ id, value, initialOptedSt
         buttonClassName += 'option-item-opted-out';
     } else {
         buttonClassName += 'option-item-undecided';
+    }
+
+    if (isEditable) {
+        buttonClassName += ' option-item-editable';
     }
 
     return (

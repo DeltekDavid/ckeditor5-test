@@ -52,6 +52,10 @@ code {
   cursor: pointer;
 }
 
+.option-item-editable {
+  border-radius: 0px;
+}
+
 .option-item-undecided {
   color: #F78909;
   padding: 4px 8px;
@@ -135,4 +139,9 @@ code {
 
 .ck.ck-units-form .ck-button:nth-of-type(2) {
   grid-area: 3 / 2 / 4 / 3;
+}
+
+/* Hide the button that lets user select and drag/drop entire table */
+.ck.ck-widget__selection-handle {
+  display: none;
 }

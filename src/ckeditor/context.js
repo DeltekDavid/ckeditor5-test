@@ -1,9 +1,10 @@
-import { ClassicEditor, Context, Essentials, Bold, Italic, Paragraph, CloudServices } from 'ckeditor5';
+import { ClassicEditor, Context, Essentials, Bold, Italic, Paragraph, CloudServices, Table, TableProperties, TableCellProperties, TableToolbar } from 'ckeditor5';
 
 import { Comments, TrackChanges, RealTimeCollaborativeTrackChanges, RealTimeCollaborativeComments, PresenceList } from 'ckeditor5-premium-features';
 
 import UnitsOfMeasure from '../ckeditor/unitsOfMeasure/unitsOfMeasure';
 import BracketOptionPlugin from '../ckeditor/bracketOption/bracketOption';
+import { EnablePremiumFeatures } from '../constants';
 
 
 class OurContext extends Context { }
@@ -12,28 +13,43 @@ OurContext.defaultConfig = {
     language: 'en',
 };
 
-OurContext.builtinPlugins = [
+OurContext.builtinPlugins = EnablePremiumFeatures ? [
     CloudServices,
     PresenceList,
-];
+] : [];
 
 class OurClassicEditor extends ClassicEditor { }
 
-OurClassicEditor.builtinPlugins = [
+OurClassicEditor.builtinPlugins = EnablePremiumFeatures ? [
     Essentials,
     Bold,
     Italic,
     Paragraph,
+    Table,
+    TableProperties,
+    TableCellProperties,
+    TableToolbar,
     TrackChanges,
     Comments,
     RealTimeCollaborativeComments,
     RealTimeCollaborativeTrackChanges,
     UnitsOfMeasure,
     BracketOptionPlugin
-]
+] : [
+    Essentials,
+    Bold,
+    Italic,
+    Paragraph,
+    Table,
+    TableProperties,
+    TableCellProperties,
+    TableToolbar,
+    UnitsOfMeasure,
+    BracketOptionPlugin
+];
 
 OurClassicEditor.defaultConfig = {
-    toolbar: [
+    toolbar: EnablePremiumFeatures ? [
         'undo',
         'redo',
         '|',
@@ -41,7 +57,13 @@ OurClassicEditor.defaultConfig = {
         '|',
         'showUnits',
         'unitsOfMeasure',
-    ]
+    ] : [
+        'undo',
+        'redo',
+        '|',
+        'showUnits',
+        'unitsOfMeasure',
+    ],
 };
 
 export default { OurContext, OurClassicEditor };

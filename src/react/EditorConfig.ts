@@ -7,6 +7,7 @@ declare module "@ckeditor/ckeditor5-core" { // augment module to avoid TypeScrip
                 id: string,
                 value: string,
                 optedState: OptedState,
+                isEditable: boolean,
                 onOptedStateChanged: (newState: OptedState) => void,
                 domElement: HTMLElement,
             ) => void;

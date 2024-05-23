@@ -15,7 +15,7 @@ import BracketOption from '.././react/BracketOption';
 
 export interface EditorProps {
     initialData?: string,
-    channelId: string,
+    channelId?: string,
     editorSuffix: string,
 }
 
@@ -36,29 +36,41 @@ const Editor: React.FC<EditorProps> = (
                 <CKEditor
                     editor={ClassicalEditorBuild.OurClassicEditor}
                     config={{
-                        collaboration: {
+                        collaboration: channelId ? {
                             channelId: channelId + editorSuffix,
-                        },
+                        } : undefined,
                         bracketOption: {
                             bracketOptionRenderer: (
                                 id: string,
                                 value: string,
                                 optedState: OptedState,
+                                isEditable: boolean,
                                 onOptedStateChanged: (newState: OptedState) => void,
                                 domElement: HTMLElement,
                             ) => {
                                 const root = createRoot(domElement);
 
                                 root.render(
-                                    <BracketOption id={id} value={value} initialOptedState={optedState} onOptedStateChanged={onOptedStateChanged} />
+                                    <BracketOption id={id} value={value} initialOptedState={optedState} isEditable={isEditable} onOptedStateChanged={onOptedStateChanged} />
                                 );
                             }
                         },
+                        table: {
+                            contentToolbar: [
+                                'tableColumn',
+                                'tableRow',
+                            ],
+                            tableProperties: {
+                                defaultProperties: {
+                                    alignment: 'left', // left-align tables by default, like our paragraphs
+                                }
+                            }
+                        }
                     }}
                     data={paragraphContent}
                     onReady={editor => {
                         // Attach inspector
-                        CKEditorInspector.detach(editorId + editorSuffix);
+                        CKEditorInspector.detach(editorId);
                         CKEditorInspector.attach({ editorId: editor });
 
                         // Render plain HTML rather than CKEditor when the editor loses focus.
@@ -71,6 +83,11 @@ const Editor: React.FC<EditorProps> = (
                                 setIsActive(false);
                             }
                         });
+
+                        // Prevent user from adding text before, after, above, or below block-level widgets like tables.
+                        // (Our tables are treated as a standalone unit, like our paragraphs)
+                        const widgetTypeAroundPlugin = editor.plugins.get('WidgetTypeAround');
+                        widgetTypeAroundPlugin?.forceDisabled('OurApplication');
 
                         console.log(`Editor "${editorId}" is ready to use!`, editor);
                     }}
