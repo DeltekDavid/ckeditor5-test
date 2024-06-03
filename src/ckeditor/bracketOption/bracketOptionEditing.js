@@ -74,7 +74,7 @@ export default class BracketOptionEditing extends Plugin {
         });
 
         // Create track change descriptions for bracket option toggles.
-        trackChangesPlugin._descriptionFactory.registerDescriptionCallback(suggestion => {
+        trackChangesPlugin.descriptionFactory.registerDescriptionCallback(suggestion => {
             const { data } = suggestion;
 
             if (!data || data.commandName !== 'toggleBracketOption') {

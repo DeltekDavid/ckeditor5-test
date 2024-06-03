@@ -31,7 +31,7 @@ export default class UnitsOfMeasureEditing extends Plugin {
 
     enableTrackChangeIntegration(trackChangesPlugin) {
         trackChangesPlugin.enableCommand('createUnitsOfMeasure');
-        trackChangesPlugin._descriptionFactory.registerElementLabel(
+        trackChangesPlugin.descriptionFactory.registerElementLabel(
             'unitsOfMeasure',
             quantity => quantity === 1 ? 'units of measure' : quantity + ' units of measure'
         );
@@ -67,7 +67,7 @@ export default class UnitsOfMeasureEditing extends Plugin {
         });
 
         // Create track change descriptions for units-of-measure changes.
-        trackChangesPlugin._descriptionFactory.registerDescriptionCallback(suggestion => {
+        trackChangesPlugin.descriptionFactory.registerDescriptionCallback(suggestion => {
             const { data } = suggestion;
 
             if (!data || data.commandName !== 'modifySelectedUnitsOfMeasure') {
