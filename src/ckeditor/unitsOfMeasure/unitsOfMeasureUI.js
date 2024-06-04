@@ -9,7 +9,7 @@ import {
     ClickObserver
 } from 'ckeditor5';
 import { Collection } from 'ckeditor5';
-import FormView from './unitsOfMeasureFormView';
+import UnitsFormView from './unitsOfMeasureFormView';
 
 import { getItemByName, reRunConverters } from '../utils';
 
@@ -124,7 +124,7 @@ export default class UnitsOfMeasureUI extends Plugin {
 
     _createFormView() {
         const editor = this.editor;
-        const formView = new FormView(editor.locale);
+        const formView = new UnitsFormView(editor.locale);
 
         this.listenTo(formView, 'submit', () => {
             const imperial = formView.imperialInputView.fieldView.element.value;

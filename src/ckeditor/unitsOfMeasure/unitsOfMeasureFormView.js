@@ -7,7 +7,7 @@ import {
     icons,
 } from 'ckeditor5';
 
-export default class FormView extends View {
+export default class UnitsFormView extends View {
     constructor(locale) {
         super(locale);
 
