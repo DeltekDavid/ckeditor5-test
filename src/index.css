@@ -141,6 +141,28 @@ code {
   grid-area: 3 / 2 / 4 / 3;
 }
 
+/* Replacement (fill-in-the-blank) bracket option form */
+.ck.ck-bracket-option-form {
+  padding: var(--ck-spacing-large);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  grid-column-gap: 0px;
+  grid-row-gap: var(--ck-spacing-standard);
+}
+
+.ck.ck-bracket-option-form .ck.ck-labeled-field-view:nth-of-type(1) {
+  grid-area: 1 / 1 / 2 / 3;
+}
+
+.ck.ck-bracket-option-form .ck-button:nth-of-type(1) {
+  grid-area: 3 / 1 / 4 / 2;
+}
+
+.ck.ck-bracket-option-form .ck-button:nth-of-type(2) {
+  grid-area: 3 / 2 / 4 / 3;
+}
+
 /* Hide the button that lets user select and drag/drop entire table */
 .ck.ck-widget__selection-handle {
   display: none;
