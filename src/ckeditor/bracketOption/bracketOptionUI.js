@@ -51,7 +51,7 @@ export default class BracketOptionUI extends Plugin {
             const range = editor.model.document.selection?.getFirstRange()
             const selectedOption = range ? getItemByName(range, 'bracketOption') : null;
             if (selectedOption) {
-                editor.execute('modifySelectedBracketOption', { optionText });
+                editor.execute('modifySelectedBracketOptionValue', { optionText });
             } else {
                 // TODO create new bracketOption once we implement "create bracketOption" command
             }

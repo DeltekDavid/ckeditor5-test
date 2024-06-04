@@ -3,6 +3,7 @@ import { Widget, toWidget, viewToModelPositionOutsideModelElement } from 'ckedit
 
 import ToggleBracketOptionCommand from './toggleBracketOptionCommand'
 import { getItemByAttribute, reRunConverters } from '../utils';
+import ModifySelectedBracketOptionValueCommand from './modifySelectedBracketOptionValueCommand';
 
 export default class BracketOptionEditing extends Plugin {
     static get requires() {
@@ -15,6 +16,7 @@ export default class BracketOptionEditing extends Plugin {
         this._defineConverters()
 
         this.editor.commands.add('toggleBracketOption', new ToggleBracketOptionCommand(this.editor))
+        this.editor.commands.add('modifySelectedBracketOptionValue', new ModifySelectedBracketOptionValueCommand(this.editor));
 
         this.editor.editing.mapper.on(
             'viewToModelPosition',
