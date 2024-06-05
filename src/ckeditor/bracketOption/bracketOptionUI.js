@@ -119,5 +119,6 @@ export default class BracketOptionUI extends Plugin {
         });
 
         this.formView.focus();
+        this.formView.bracketOptionInputView.fieldView.element.select(); // select all text in input
     }
 }
