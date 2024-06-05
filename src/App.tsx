@@ -95,6 +95,9 @@ const content4 = `
             </tr>
         </tbody>
     </table>`;
+const content5 = `
+        <p>Stainless Steel Pans for Acoustical Metal Pan Ceiling <span class='bracket-option' data-id='option-1' data-opted-state='UNDECIDED' data-editable='true'>Insert drawing designation</span>: Product type detail here.</p>
+    `
 
 interface CloudConfig {
     tokenUrl: string,
@@ -151,6 +154,9 @@ const App: React.FC = () => {
                                 </div>}
                             <div className="editor-instance">
                                 <Editor initialData={content4} channelId={cloudConfig?.channelId} editorSuffix='4' />
+                            </div>
+                            <div className="editor-instance">
+                                <Editor initialData={content5} channelId={cloudConfig?.channelId} editorSuffix='5' />
                             </div>
                         </div>
                     </CKEditorContext>}
