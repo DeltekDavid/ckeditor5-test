@@ -3,7 +3,7 @@ import { Widget, toWidget, viewToModelPositionOutsideModelElement } from 'ckedit
 
 import ToggleBracketOptionCommand from './toggleBracketOptionCommand'
 import { getItemByAttribute, reRunConverters } from '../utils';
-import ModifySelectedBracketOptionValueCommand from './modifySelectedBracketOptionValueCommand';
+import modifyBracketOptionValueCommand from './modifyBracketOptionValueCommand';
 
 export default class BracketOptionEditing extends Plugin {
     static get requires() {
@@ -16,7 +16,7 @@ export default class BracketOptionEditing extends Plugin {
         this._defineConverters()
 
         this.editor.commands.add('toggleBracketOption', new ToggleBracketOptionCommand(this.editor))
-        this.editor.commands.add('modifySelectedBracketOptionValue', new ModifySelectedBracketOptionValueCommand(this.editor));
+        this.editor.commands.add('modifyBracketOptionValue', new modifyBracketOptionValueCommand(this.editor));
 
         this.editor.editing.mapper.on(
             'viewToModelPosition',
@@ -35,8 +35,6 @@ export default class BracketOptionEditing extends Plugin {
                 this.enableTrackChangeIntegration(trackChangesEditing);
             }
         }
-
-        console.log('BracketOptionEditing was initialized')
     }
 
     runConvertersOnModelChange() {
@@ -56,6 +54,7 @@ export default class BracketOptionEditing extends Plugin {
                 return;
             }
 
+            // Enable track changes for toggling bracket options.
             this.editor.model.change(() => {
                 const selectionRanges = Array.from(selection.getRanges());
                 for (const selectionRange of selectionRanges) {
@@ -86,6 +85,54 @@ export default class BracketOptionEditing extends Plugin {
             const optionState = data.commandParams?.[0]?.newState;
             const optionValue = data.commandParams?.[0]?.bracketOptionValue;
             const content = optionState === 'OPTED_IN' ? `Selected [${optionValue}]` : `Deselected [${optionValue}]`;
+
+            return {
+                type: 'format',
+                content
+            };
+        });
+
+
+        // Enable track changes for modifying bracket option values.
+        trackChangesPlugin.enableCommand('modifyBracketOptionValue', (executeCommand, options = {}) => {
+            const selection = this.editor.model.document.selection;
+
+            if (selection.isCollapsed) {
+                // If the selection is collapsed, execute the default behavior of the command.
+                executeCommand(options);
+
+                return;
+            }
+
+            this.editor.model.change(() => {
+                const selectionRanges = Array.from(selection.getRanges());
+                for (const selectionRange of selectionRanges) {
+                    // Is a bracket option selected?
+                    const item = getItemByAttribute(selectionRange, 'optedState');
+                    if (!item) {
+                        continue;
+                    }
+                    trackChangesPlugin.markInlineFormat(
+                        selectionRange,
+                        {
+                            commandName: 'modifyBracketOptionValue',
+                            commandParams: [{ bracketOptionId: item.getAttribute('id'), newValue: options.newValue }]
+                        }
+                    );
+                }
+            });
+        });
+
+        // Create track change descriptions for modifying bracket option values.
+        trackChangesPlugin.descriptionFactory.registerDescriptionCallback(suggestion => {
+            const { data } = suggestion;
+
+            if (!data || data.commandName !== 'modifyBracketOptionValue') {
+                return;
+            }
+
+            const optionValue = data.commandParams?.[0]?.newValue;
+            const content = `Set option value: <${optionValue}>`;
 
             return {
                 type: 'format',
@@ -185,7 +232,6 @@ export default class BracketOptionEditing extends Plugin {
                     // editor.config.bracket-options#bracketOptionRenderer.
                     renderBracketOption(id, value, optedState, isEditable, (newState) => {
                         editor.execute('toggleBracketOption', { bracketOptionId: id, newState })
-                        console.log(newState)
                     }, domElement);
                 })
 

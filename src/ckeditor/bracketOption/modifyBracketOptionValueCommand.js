@@ -1,8 +1,9 @@
 import { Command } from 'ckeditor5';
+
 import { getItemByAttributeValue } from '../utils';
 
-export default class ToggleBracketOptionCommand extends Command {
-    execute({ bracketOptionId, _, newState }) {
+export default class ModifyBracketOptionValueCommand extends Command {
+    execute({ bracketOptionId, _, newValue }) {
         const model = this.editor.model;
         model.change(writer => {
             const root = model.document.getRoot();
@@ -11,10 +12,10 @@ export default class ToggleBracketOptionCommand extends Command {
             }
             const range = model.createRangeIn(root);
             const bracketOptionElement = getItemByAttributeValue(range, 'id', bracketOptionId);
-            if (!bracketOptionElement) {
+            if (!bracketOptionElement || !bracketOptionElement.getAttribute('isEditable')) {
                 return;
             }
-            writer.setAttribute('optedState', newState, bracketOptionElement)
+            writer.setAttribute('value', newValue, bracketOptionElement)
         });
     }
 
@@ -22,10 +23,10 @@ export default class ToggleBracketOptionCommand extends Command {
         const model = this.editor.model;
         const selection = model.document.selection;
 
-        // The command is enabled when the "optedState" attribute
+        // The command is enabled when the "value" attribute
         // can be set on the current model selection.
         this.isEnabled = model.schema.checkAttributeInSelection(
-            selection, 'optedState'
+            selection, 'value'
         );
     }
 }

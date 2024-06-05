@@ -38,8 +38,6 @@ export default class BracketOptionUI extends Plugin {
                 this._showUI();
             }
         });
-
-        console.log('BracketOptionUI was initialized')
     }
 
     _createFormView() {
@@ -53,7 +51,7 @@ export default class BracketOptionUI extends Plugin {
             const range = editor.model.document.selection?.getFirstRange()
             const selectedOption = range ? getItemByName(range, 'bracketOption') : null;
             if (selectedOption) {
-                editor.execute('modifySelectedBracketOptionValue', optionText);
+                editor.execute('modifyBracketOptionValue', { bracketOptionId: selectedOption.getAttribute('id'), newValue: optionText });
             } else {
                 // TODO create new bracketOption once we implement "create bracketOption" command
             }

@@ -25,8 +25,6 @@ export default class UnitsOfMeasureEditing extends Plugin {
                 this.enableTrackChangeIntegration(trackChangesEditing);
             }
         }
-
-        console.log('UnitsOfMeasureEditing was initialized')
     }
 
     enableTrackChangeIntegration(trackChangesPlugin) {

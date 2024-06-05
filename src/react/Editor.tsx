@@ -88,8 +88,6 @@ const Editor: React.FC<EditorProps> = (
                         // (Our tables are treated as a standalone unit, like our paragraphs)
                         const widgetTypeAroundPlugin = editor.plugins.get('WidgetTypeAround');
                         widgetTypeAroundPlugin?.forceDisabled('OurApplication');
-
-                        console.log(`Editor "${editorId}" is ready to use!`, editor);
                     }}
                 /> :
                 // Render plain HTML rather than CKEditor when the editor is not active.
