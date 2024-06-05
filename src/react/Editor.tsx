@@ -71,7 +71,7 @@ const Editor: React.FC<EditorProps> = (
                     onReady={editor => {
                         // Attach inspector
                         CKEditorInspector.detach(editorId);
-                        CKEditorInspector.attach(editor);
+                        CKEditorInspector.attach({ [editorId]: editor });
 
                         // Render plain HTML rather than CKEditor when the editor loses focus.
                         // This is to test on-demand "activation" of CKEditor so we don't have to connect
