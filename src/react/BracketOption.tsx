@@ -4,16 +4,14 @@ import { OptedState } from '../model/optionItemState';
 interface BracketOptionProps {
     id: string;
     value: string;
-    initialOptedState: OptedState;
+    optedState: OptedState;
     isEditable: boolean;
     onOptedStateChanged: (newState: OptedState) => void;
 }
 
-const BracketOption: React.FC<BracketOptionProps> = ({ id, value, initialOptedState, isEditable, onOptedStateChanged }) => {
-    const [optedState, setOptedState] = React.useState<OptedState>(initialOptedState);
+const BracketOption: React.FC<BracketOptionProps> = ({ id, value, optedState, isEditable, onOptedStateChanged }) => {
     const handleClick = React.useCallback(() => {
         const newState = optedState === OptedState.OptedIn ? OptedState.OptedOut : OptedState.OptedIn;
-        setOptedState(newState);
         onOptedStateChanged?.(newState);
 
     }, [onOptedStateChanged, optedState]);

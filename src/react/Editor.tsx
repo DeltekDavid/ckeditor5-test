@@ -51,7 +51,7 @@ const Editor: React.FC<EditorProps> = (
                                 const root = createRoot(domElement);
 
                                 root.render(
-                                    <BracketOption id={id} value={value} initialOptedState={optedState} isEditable={isEditable} onOptedStateChanged={onOptedStateChanged} />
+                                    <BracketOption id={id} value={value} optedState={optedState} isEditable={isEditable} onOptedStateChanged={onOptedStateChanged} />
                                 );
                             }
                         },
