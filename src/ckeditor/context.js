@@ -1,4 +1,4 @@
-import { ClassicEditor, Context, Essentials, Bold, Italic, Paragraph, CloudServices, Table, TableProperties, TableCellProperties, TableToolbar } from 'ckeditor5';
+import { ClassicEditor, Context, Essentials, Bold, Italic, Paragraph, CloudServices, Table, TableProperties, TableCellProperties, TableToolbar, ContextWatchdog } from 'ckeditor5';
 
 import { Comments, TrackChanges, RealTimeCollaborativeTrackChanges, RealTimeCollaborativeComments, PresenceList } from 'ckeditor5-premium-features';
 
@@ -66,4 +66,4 @@ OurClassicEditor.defaultConfig = {
     ],
 };
 
-export default { OurContext, OurClassicEditor };
+export default { OurContext, OurClassicEditor, ContextWatchdog };

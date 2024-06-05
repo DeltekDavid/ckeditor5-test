@@ -122,6 +122,7 @@ const App: React.FC = () => {
                 {(cloudConfig || !EnablePremiumFeatures)
                     && <CKEditorContext
                         context={ClassicalEditorBuild.OurContext}
+                        contextWatchdog={ClassicalEditorBuild.ContextWatchdog}
                         config={
                             {
                                 cloudServices: cloudConfig ? {
