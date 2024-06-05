@@ -26,11 +26,13 @@ export default class BracketOptionUI extends Plugin {
 
         // Show UI when user clicks a fill-in-the-blank bracketOption element.
         this.editor.listenTo(viewDocument, 'click', (evt, data) => {
-            const modelElement = this.editor.editing.mapper.toModelElement(data.target?.parent);
-            if (modelElement?.name === 'bracketOption' && modelElement?.getAttribute('isEditable') === 'true') {
+            const range = editor.model?.document?.selection?.getFirstRange()
+            const selectedOption = range ? getItemByName(range, 'bracketOption') : null;
+            if (selectedOption?.getAttribute('isEditable') === true
+                && selectedOption.getAttribute('optedState') === 'OPTED_IN') {
                 // Select the bracketOption element.
                 this.editor.model.change(writer => {
-                    writer.setSelection(writer.createPositionAt(modelElement, 0));
+                    writer.setSelection(writer.createPositionAt(selectedOption, 0));
                 });
 
                 this._showUI();
@@ -51,7 +53,7 @@ export default class BracketOptionUI extends Plugin {
             const range = editor.model.document.selection?.getFirstRange()
             const selectedOption = range ? getItemByName(range, 'bracketOption') : null;
             if (selectedOption) {
-                editor.execute('modifySelectedBracketOptionValue', { optionText });
+                editor.execute('modifySelectedBracketOptionValue', optionText);
             } else {
                 // TODO create new bracketOption once we implement "create bracketOption" command
             }
