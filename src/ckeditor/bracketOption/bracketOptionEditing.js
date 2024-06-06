@@ -2,7 +2,7 @@ import { Plugin } from 'ckeditor5'
 import { Widget, toWidget, viewToModelPositionOutsideModelElement } from 'ckeditor5';
 
 import ToggleBracketOptionCommand from './toggleBracketOptionCommand'
-import { getItemByAttribute, reRunConverters } from '../utils';
+import { reRunConverters } from '../utils';
 import modifyBracketOptionValueCommand from './modifyBracketOptionValueCommand';
 
 export default class BracketOptionEditing extends Plugin {
@@ -44,101 +44,13 @@ export default class BracketOptionEditing extends Plugin {
     }
 
     enableTrackChangeIntegration(trackChangesPlugin) {
-        trackChangesPlugin.enableCommand('toggleBracketOption', (executeCommand, options = {}) => {
-            const selection = this.editor.model.document.selection;
+        // Track toggling of bracket options.
+        trackChangesPlugin.enableDefaultAttributesIntegration('toggleBracketOption');
+        trackChangesPlugin.registerInlineAttribute('optedState');
 
-            if (selection.isCollapsed) {
-                // If the selection is collapsed, execute the default behavior of the command.
-                executeCommand(options);
-
-                return;
-            }
-
-            // Enable track changes for toggling bracket options.
-            this.editor.model.change(() => {
-                const selectionRanges = Array.from(selection.getRanges());
-                for (const selectionRange of selectionRanges) {
-                    // Is a bracket option selected?
-                    const item = getItemByAttribute(selectionRange, 'optedState');
-                    if (!item) {
-                        continue;
-                    }
-                    trackChangesPlugin.markInlineFormat(
-                        selectionRange,
-                        {
-                            commandName: 'toggleBracketOption',
-                            commandParams: [{ bracketOptionId: item.getAttribute('id'), bracketOptionValue: item.getAttribute('value'), newState: options.newState }]
-                        }
-                    );
-                }
-            });
-        });
-
-        // Create track change descriptions for bracket option toggles.
-        trackChangesPlugin.descriptionFactory.registerDescriptionCallback(suggestion => {
-            const { data } = suggestion;
-
-            if (!data || data.commandName !== 'toggleBracketOption') {
-                return;
-            }
-
-            const optionState = data.commandParams?.[0]?.newState;
-            const optionValue = data.commandParams?.[0]?.bracketOptionValue;
-            const content = optionState === 'OPTED_IN' ? `Selected [${optionValue}]` : `Deselected [${optionValue}]`;
-
-            return {
-                type: 'format',
-                content
-            };
-        });
-
-
-        // Enable track changes for modifying bracket option values.
-        trackChangesPlugin.enableCommand('modifyBracketOptionValue', (executeCommand, options = {}) => {
-            const selection = this.editor.model.document.selection;
-
-            if (selection.isCollapsed) {
-                // If the selection is collapsed, execute the default behavior of the command.
-                executeCommand(options);
-
-                return;
-            }
-
-            this.editor.model.change(() => {
-                const selectionRanges = Array.from(selection.getRanges());
-                for (const selectionRange of selectionRanges) {
-                    // Is a bracket option selected?
-                    const item = getItemByAttribute(selectionRange, 'optedState');
-                    if (!item) {
-                        continue;
-                    }
-                    trackChangesPlugin.markInlineFormat(
-                        selectionRange,
-                        {
-                            commandName: 'modifyBracketOptionValue',
-                            commandParams: [{ bracketOptionId: item.getAttribute('id'), newValue: options.newValue }]
-                        }
-                    );
-                }
-            });
-        });
-
-        // Create track change descriptions for modifying bracket option values.
-        trackChangesPlugin.descriptionFactory.registerDescriptionCallback(suggestion => {
-            const { data } = suggestion;
-
-            if (!data || data.commandName !== 'modifyBracketOptionValue') {
-                return;
-            }
-
-            const optionValue = data.commandParams?.[0]?.newValue;
-            const content = `Set option value: <${optionValue}>`;
-
-            return {
-                type: 'format',
-                content
-            };
-        });
+        // Track setting of fill-in-the-blank values.
+        trackChangesPlugin.enableDefaultAttributesIntegration('modifyBracketOptionValue');
+        trackChangesPlugin.registerInlineAttribute('value');
     }
 
     _defineSchema() {

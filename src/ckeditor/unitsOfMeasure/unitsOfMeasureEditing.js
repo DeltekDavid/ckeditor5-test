@@ -3,7 +3,7 @@ import { toWidgetEditable, viewToModelPositionOutsideModelElement } from 'ckedit
 
 import CreateUnitsOfMeasureCommand from './createUnitsOfMeasureCommand';
 import ModifySelectedUnitsOfMeasureCommand from './modifySelectedUnitsOfMeasureCommand';
-import { getChildByAttributeValue, getItemByName } from '../utils';
+import { getChildByAttributeValue } from '../utils';
 
 export default class UnitsOfMeasureEditing extends Plugin {
     init() {
@@ -28,59 +28,17 @@ export default class UnitsOfMeasureEditing extends Plugin {
     }
 
     enableTrackChangeIntegration(trackChangesPlugin) {
+        // Track creation of units of measure.
         trackChangesPlugin.enableCommand('createUnitsOfMeasure');
         trackChangesPlugin.descriptionFactory.registerElementLabel(
             'unitsOfMeasure',
             quantity => quantity === 1 ? 'units of measure' : quantity + ' units of measure'
         );
 
-        trackChangesPlugin.enableCommand('modifySelectedUnitsOfMeasure', (executeCommand, options) => {
-            // If the selection is collapsed, execute the default behavior of the command.
-            const selection = this.editor.model.document.selection;
-            if (selection.isCollapsed) {
-                executeCommand(options);
-                return;
-            }
-
-            const selectionRange = selection.getFirstRange();
-            if (!selectionRange) {
-                return;
-            }
-            const units = getItemByName(selectionRange, 'unitsOfMeasure');
-            if (!units) {
-                return;
-            }
-            this.editor.model.change(() => {
-                trackChangesPlugin.markInlineFormat(
-                    selectionRange,
-                    {
-                        commandName: 'modifySelectedUnitsOfMeasure',
-                        commandParams: [{
-                            imperial: options.imperial,
-                            metric: options.metric,
-                        }]
-                    }
-                );
-            });
-        });
-
-        // Create track change descriptions for units-of-measure changes.
-        trackChangesPlugin.descriptionFactory.registerDescriptionCallback(suggestion => {
-            const { data } = suggestion;
-
-            if (!data || data.commandName !== 'modifySelectedUnitsOfMeasure') {
-                return;
-            }
-
-            const imperial = data.commandParams?.[0]?.imperial;
-            const metric = data.commandParams?.[0]?.metric;
-            const content = `Changed units of measure to "${imperial} (${metric})"`;
-
-            return {
-                type: 'format',
-                content
-            };
-        });
+        // Track changes to units of measure.
+        trackChangesPlugin.enableDefaultAttributesIntegration('modifySelectedUnitsOfMeasure');
+        trackChangesPlugin.registerInlineAttribute('metric');
+        trackChangesPlugin.registerInlineAttribute('imperial');
     }
 
     _defineSchema() {
