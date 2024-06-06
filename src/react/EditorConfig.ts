@@ -1,3 +1,4 @@
+import { BracketContentElement } from "../model/bracketContentElement";
 import { OptedState } from "../model/optionItemState";
 
 declare module "@ckeditor/ckeditor5-core" { // augment module to avoid TypeScript errors
@@ -5,7 +6,7 @@ declare module "@ckeditor/ckeditor5-core" { // augment module to avoid TypeScrip
         bracketOption?: {
             bracketOptionRenderer: (
                 id: string,
-                value: string,
+                contentElements: BracketContentElement[],
                 optedState: OptedState,
                 isEditable: boolean,
                 onOptedStateChanged: (newState: OptedState) => void,

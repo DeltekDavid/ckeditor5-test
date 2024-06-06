@@ -32,7 +32,7 @@ export default class BracketOptionUI extends Plugin {
                 && selectedOption.getAttribute('optedState') === 'OPTED_IN') {
                 // Select the bracketOption element.
                 this.editor.model.change(writer => {
-                    writer.setSelection(writer.createPositionAt(selectedOption, 0));
+                    writer.setSelection(selectedOption, 'on');
                 });
 
                 this._showUI();
@@ -105,9 +105,12 @@ export default class BracketOptionUI extends Plugin {
         // If an existing bracketOption is selected, populate the form with its value.
         const range = this.editor.model.document.selection?.getFirstRange()
         if (range) {
-            const bracketOption = getItemByName(range, 'bracketOption');
-            if (bracketOption) {
-                this.formView.bracketOptionInputView.fieldView.value = bracketOption.getAttribute('value');
+            const nestedTextNode = getItemByName(range, 'nestedText');
+            if (nestedTextNode) {
+                const nodeText = nestedTextNode.getAttribute('value')
+                if (nodeText) {
+                    this.formView.bracketOptionInputView.fieldView.value = nodeText;
+                }
             }
         }
 

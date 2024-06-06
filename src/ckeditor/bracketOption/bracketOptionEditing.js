@@ -2,8 +2,9 @@ import { Plugin } from 'ckeditor5'
 import { Widget, toWidget, viewToModelPositionOutsideModelElement } from 'ckeditor5';
 
 import ToggleBracketOptionCommand from './toggleBracketOptionCommand'
-import { reRunConverters } from '../utils';
+import { reRunConverters, getChildByAttributeValue } from '../utils';
 import modifyBracketOptionValueCommand from './modifyBracketOptionValueCommand';
+import { BracketContentElementType } from '../../model/bracketContentElement';
 
 export default class BracketOptionEditing extends Plugin {
     static get requires() {
@@ -61,7 +62,7 @@ export default class BracketOptionEditing extends Plugin {
             }
 
             const optedState = data.newValue;
-            const value = suggestion.getFirstRange()?.start?.nodeAfter?.getAttribute('value');
+            const value = suggestion.getFirstRange()?.start?.nodeAfter?.getChild(0)?.getAttribute('value');
             const content = optedState === 'OPTED_IN'
                 ? `Selected option: "${value}"`
                 : optedState === 'OPTED_OUT' ? `Deselected option: "${value}"`
@@ -105,6 +106,18 @@ export default class BracketOptionEditing extends Plugin {
                 'optedState' // 'undecided', 'optedIn', or 'optedOut'
             ]
         })
+
+        schema.register('nestedUnitsOfMeasure', {
+            inheritAllFrom: '$inlineObject',
+            allowAttributes: ['imperial', 'metric']
+        })
+
+        // Use a custom element for nested text, since regular text nested under a bracket causes extra text to render/
+        // (Regular text is automatically converted to a text node alongside the bracket's own React component.)
+        schema.register('nestedText', {
+            inheritAllFrom: '$inlineObject',
+            allowAttributes: ['value'],
+        })
     }
 
     _defineConverters() {
@@ -119,24 +132,45 @@ export default class BracketOptionEditing extends Plugin {
                 classes: 'bracket-option',
             },
             model: (viewElement, { writer: modelWriter }) => {
-                return modelWriter.createElement('bracketOption',
+                const bracketElement = modelWriter.createElement('bracketOption',
                     {
                         id: viewElement.getAttribute('data-id'), // read custom attributes ("data-" prefix) from our span
-                        value: viewElement.getChild(0).data, // read the text content of the span
                         optedState: viewElement.getAttribute('data-opted-state'),
                         isEditable: viewElement.getAttribute('data-editable') === 'true',
                     });
+
+                // Insert child text and units-of-measure nodes that comprise the bracket option's content.
+                for (const childElement of viewElement.getChildren()) {
+                    if (childElement.is('$text')) {
+                        const nestedText = modelWriter.createElement('nestedText', {
+                            value: childElement.data
+                        });
+                        modelWriter.insert(nestedText, bracketElement, 'end');
+                    }
+                    else if (childElement.hasClass('nested-units-of-measure')) {
+                        const imperialNode = getChildByAttributeValue(childElement, 'class', 'imperial');
+                        const imperialValue = (imperialNode)?.getChild(0)?.data
+                        const metricNode = getChildByAttributeValue(childElement, 'class', 'metric');
+                        const metricValue = (metricNode)?.getChild(0)?.data
+                        const unitsOfMeasureElement = modelWriter.createElement('nestedUnitsOfMeasure', {
+                            imperial: imperialValue,
+                            metric: metricValue,
+                        });
+                        modelWriter.insert(unitsOfMeasureElement, bracketElement, 'end');
+                    }
+                }
+                return bracketElement;
             }
         })
 
         // <bracketOption> convert model to data view
         conversion.for('dataDowncast').elementToElement({
             model: 'bracketOption',
-            view: (modelElement, { writer: viewWriter }) => {
+            view: (modelElement, { writer: viewWriter, consumable }) => {
                 // In the data view, the model:
-                //    <bracketOption id="123" value="text" optedState="OPTED_IN">
+                //    <bracketOption id="123" optedState="OPTED_IN">text</bracketOption>
                 //
-                // corresponds to:
+                // corresponds to view node:
                 //    <span class="bracketOption" data-id="123" opted-state="OPTED_IN">text</span>
                 const span = viewWriter.createContainerElement('span', {
                     class: 'bracket-option',
@@ -144,8 +178,29 @@ export default class BracketOptionEditing extends Plugin {
                     'data-opted-state': modelElement.getAttribute('optedState'),
                     'data-editable': modelElement.getAttribute('isEditable') === true ? 'true' : 'false',
                 });
-                const innerText = viewWriter.createText(modelElement.getAttribute('value'));
-                viewWriter.insert(viewWriter.createPositionAt(span, 0), innerText);
+
+                if (modelElement.childCount > 0) {
+                    for (const childElement of modelElement.getChildren()) {
+                        const imperialUnits = childElement.getAttribute('imperial')
+                        const metricUnits = childElement.getAttribute('metric')
+                        if (imperialUnits || metricUnits) {
+                            viewWriter.createContainerElement('span', {
+                                class: 'nested-units-of-measure',
+                                imperial: imperialUnits,
+                                metric: metricUnits,
+                            }, span)
+                        }
+                        else {
+                            viewWriter.createContainerElement('span', {
+                                class: 'nested-text',
+                                value: childElement.getAttribute('value')
+                            }, span)
+                        }
+
+                        // Consume child elements to avoid "conversion-model-consumable-not-consumed" error
+                        consumable.consume(childElement, 'insert');
+                    }
+                }
                 return span;
             }
         });
@@ -153,7 +208,7 @@ export default class BracketOptionEditing extends Plugin {
         // <bracketOption> convert model to editing view
         conversion.for('editingDowncast').elementToElement({
             model: 'bracketOption',
-            view: (modelElement, { writer: viewWriter }) => {
+            view: (modelElement, { writer: viewWriter, consumable }) => {
                 // In the editing view, the model <bracketOption> corresponds to:
                 //
                 // <span class="bracket-option" data-id="...">
@@ -162,7 +217,6 @@ export default class BracketOptionEditing extends Plugin {
                 //     </span>
                 // </span>
                 const id = modelElement.getAttribute('id')
-                const value = modelElement.getAttribute('value')
                 const optedState = modelElement.getAttribute('optedState')
                 const isEditable = modelElement.getAttribute('isEditable')
 
@@ -180,12 +234,27 @@ export default class BracketOptionEditing extends Plugin {
                     // This is the place where React renders the actual bracket-option preview hosted
                     // by a UIElement in the view. You are using a function (renderer) passed as
                     // editor.config.bracket-options#bracketOptionRenderer.
-                    renderBracketOption(id, value, optedState, isEditable, (newState) => {
+
+                    const children = Array.from(modelElement.getChildren());
+                    const childElements = children.map(child => {
+                        return {
+                            type: child.getAttribute('imperial') ? BracketContentElementType.UnitsOfMeasure : BracketContentElementType.Text,
+                            text: child.getAttribute('value'),
+                            imperialUnits: child.getAttribute('imperial'),
+                            metricUnits: child.getAttribute('metric'),
+                        }
+                    })
+                    renderBracketOption(id, childElements, optedState, isEditable, (newState) => {
                         editor.execute('toggleBracketOption', { bracketOptionId: id, newState })
                     }, domElement);
                 })
 
                 viewWriter.insert(viewWriter.createPositionAt(span, 0), reactWrapper)
+
+                // Consume child elements to avoid "conversion-model-consumable-not-consumed" error
+                for (const child of modelElement.getChildren()) {
+                    consumable.consume(child, 'insert')
+                }
 
                 return toWidget(span, viewWriter, { label: 'bracket option widget' })
             }

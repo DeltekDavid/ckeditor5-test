@@ -95,10 +95,13 @@ const content4 = `
             </tr>
         </tbody>
     </table>`;
-const content5 = `
-        <p>Stainless Steel Pans for Acoustical Metal Pan Ceiling <span class='bracket-option' data-id='option-1' data-opted-state='UNDECIDED' data-editable='true'>Insert drawing designation</span>: Product type detail here.</p>
-    `
-
+const content5 = "<p>5. Stainless Steel Pans for Acoustical Metal Pan Ceiling <span class='bracket-option' data-id='option-1' data-opted-state='UNDECIDED' data-editable='true'>Insert drawing designation</span>: Product type detail here.</p>";
+const content6 = `<p>6. Door height: <span class="bracket-option" data-id="option-1" data-opted-state="UNDECIDED">
+    Between <span class='nested-units-of-measure'><span class='imperial'>48" x 160"</span><span class='metric'>122 cm x 406 cm</span></span> 
+    and <span class='nested-units-of-measure'><span class='imperial'>72" x 160"</span><span class='metric'>183 cm x 406 cm</span></span></span> 
+    <span class="bracket-option" data-id="option-2" data-opted-state="UNDECIDED">
+    Between <span class='nested-units-of-measure'><span class='imperial'>96" x 84"</span><span class='metric'>244 cm x 213 cm</span></span> 
+    and <span class='nested-units-of-measure'><span class='imperial'>120" x 84"</span><span class='metric'>305 cm x 213 cm</span></span></span>.</p>`;
 interface CloudConfig {
     tokenUrl: string,
     webSocketUrl: string,
@@ -158,6 +161,9 @@ const App: React.FC = () => {
                             </div>
                             <div className="editor-instance">
                                 <Editor initialData={content5} channelId={cloudConfig?.channelId} editorSuffix='5' />
+                            </div>
+                            <div className="editor-instance">
+                                <Editor initialData={content6} channelId={cloudConfig?.channelId} editorSuffix='6' />
                             </div>
                         </div>
                     </CKEditorContext>}

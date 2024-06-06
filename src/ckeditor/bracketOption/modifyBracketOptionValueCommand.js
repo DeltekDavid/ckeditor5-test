@@ -15,7 +15,12 @@ export default class ModifyBracketOptionValueCommand extends Command {
             if (!bracketOptionElement || !bracketOptionElement.getAttribute('isEditable')) {
                 return;
             }
-            writer.setAttribute('value', newValue, bracketOptionElement)
+
+            // Replacement (fill-in-the-blank) options have a child element with the value; update that.
+            const valueChild = bracketOptionElement.getChild(0);
+            if (valueChild) {
+                writer.setAttribute('value', newValue, valueChild)
+            }
         });
     }
 

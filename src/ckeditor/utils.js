@@ -40,9 +40,12 @@ export function getItemByName(range, name) {
     return null
 }
 
-export function getChildByAttributeValue(element, attribute, value) {
+export function getChildByAttributeValue(element, attributeName, attributeValue) {
     for (const child of element.getChildren()) {
-        if (child.getAttribute(attribute) === value) {
+        if (child.is('text')) {
+            continue
+        }
+        if (child.getAttribute(attributeName) === attributeValue) {
             return child
         }
     }

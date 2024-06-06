@@ -12,6 +12,7 @@ import CKEditorInspector from '@ckeditor/ckeditor5-inspector';
 import ClassicalEditorBuild from '.././ckeditor/context';
 import { OptedState } from '.././model/optionItemState';
 import BracketOption from '.././react/BracketOption';
+import { BracketContentElement } from '../model/bracketContentElement';
 
 export interface EditorProps {
     initialData?: string,
@@ -42,7 +43,7 @@ const Editor: React.FC<EditorProps> = (
                         bracketOption: {
                             bracketOptionRenderer: (
                                 id: string,
-                                value: string,
+                                contentElements: BracketContentElement[],
                                 optedState: OptedState,
                                 isEditable: boolean,
                                 onOptedStateChanged: (newState: OptedState) => void,
@@ -51,7 +52,11 @@ const Editor: React.FC<EditorProps> = (
                                 const root = createRoot(domElement);
 
                                 root.render(
-                                    <BracketOption id={id} value={value} optedState={optedState} isEditable={isEditable} onOptedStateChanged={onOptedStateChanged} />
+                                    <BracketOption id={id}
+                                        contentElements={contentElements}
+                                        optedState={optedState}
+                                        isEditable={isEditable}
+                                        onOptedStateChanged={onOptedStateChanged} />
                                 );
                             }
                         },
