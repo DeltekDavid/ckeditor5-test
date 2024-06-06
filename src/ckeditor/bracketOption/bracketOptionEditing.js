@@ -48,9 +48,47 @@ export default class BracketOptionEditing extends Plugin {
         trackChangesPlugin.enableDefaultAttributesIntegration('toggleBracketOption');
         trackChangesPlugin.registerInlineAttribute('optedState');
 
+        // Create friendly TC descriptions for bracket option toggles.
+        trackChangesPlugin.descriptionFactory.registerDescriptionCallback(suggestion => {
+            const data = suggestion.data;
+            if (!data) {
+                return;
+            }
+
+            const attributeName = data.key;
+            if (attributeName !== 'optedState') {
+                return;
+            }
+
+            const optedState = data.newValue;
+            const value = suggestion.getFirstRange()?.start?.nodeAfter?.getAttribute('value');
+            const content = optedState === 'OPTED_IN'
+                ? `Selected option: "${value}"`
+                : optedState === 'OPTED_OUT' ? `Deselected option: "${value}"`
+                    : `Reset option: "${value}"`;
+            return { type: 'format', content };
+        });
+
         // Track setting of fill-in-the-blank values.
         trackChangesPlugin.enableDefaultAttributesIntegration('modifyBracketOptionValue');
         trackChangesPlugin.registerInlineAttribute('value');
+
+        // Create friendly TC descriptions for setting fill-in-the-blank values.
+        trackChangesPlugin.descriptionFactory.registerDescriptionCallback(suggestion => {
+            const data = suggestion.data;
+            if (!data) {
+                return;
+            }
+
+            const attributeName = data.key;
+            if (attributeName !== 'value') {
+                return;
+            }
+
+            const value = data.newValue;
+            const content = `Set custom option value: "${value}"`;
+            return { type: 'format', content };
+        });
     }
 
     _defineSchema() {

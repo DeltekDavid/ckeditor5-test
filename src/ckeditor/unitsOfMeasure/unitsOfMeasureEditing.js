@@ -39,6 +39,28 @@ export default class UnitsOfMeasureEditing extends Plugin {
         trackChangesPlugin.enableDefaultAttributesIntegration('modifySelectedUnitsOfMeasure');
         trackChangesPlugin.registerInlineAttribute('metric');
         trackChangesPlugin.registerInlineAttribute('imperial');
+
+        // Create friendly TC descriptions for units of measure changes.
+        trackChangesPlugin.descriptionFactory.registerDescriptionCallback(suggestion => {
+            const data = suggestion.data;
+            if (!data) {
+                return;
+            }
+
+            const attributeName = data.key;
+            if (attributeName === 'metric') {
+                // Skip `metric` attribute.
+                // The description will be generated only for `imperial` attribute.
+                return { type: 'format', content: '' };
+            }
+
+            if (attributeName === 'imperial') {
+                const imperial = data.newValue;
+                const metric = suggestion.getFirstRange()?.start?.nodeAfter?.getAttribute('metric');
+                const content = `Changed units of measure to "${imperial} (${metric})"`;
+                return { type: 'format', content };
+            }
+        });
     }
 
     _defineSchema() {
