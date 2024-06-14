@@ -102,7 +102,6 @@ export default class BracketOptionEditing extends Plugin {
 
             allowAttributes: [
                 'id',
-                'value', // content of bracket option (text for now; TODO allow composite content including units-of-measure)
                 'optedState' // 'undecided', 'optedIn', or 'optedOut'
             ]
         })
