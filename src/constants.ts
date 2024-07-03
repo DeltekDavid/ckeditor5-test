@@ -1,1 +1,1 @@
-export const EnablePremiumFeatures = true; // set to true to enable premium features like Track Changes (requires an active CKEditor subscription)
+export const EnablePremiumFeatures = false; // set to true to enable premium features like Track Changes (requires an active CKEditor subscription)
