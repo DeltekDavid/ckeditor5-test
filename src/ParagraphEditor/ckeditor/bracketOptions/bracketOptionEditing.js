@@ -1,10 +1,9 @@
-import { Plugin } from 'ckeditor5'
-import { Widget, toWidget, viewToModelPositionOutsideModelElement } from 'ckeditor5';
+import { Plugin, Widget, toWidget, viewToModelPositionOutsideModelElement } from 'ckeditor5';
 
-import ToggleBracketOptionCommand from './toggleBracketOptionCommand'
-import { reRunConverters, getChildByAttributeValue } from '../utils';
-import modifyBracketOptionValueCommand from './modifyBracketOptionValueCommand';
 import { BracketContentElementType } from '../../model/bracketContentElement';
+import { getChildByAttributeValue } from '../utils';
+import modifyBracketOptionValueCommand from './modifyBracketOptionValueCommand';
+import ToggleBracketOptionCommand from './toggleBracketOptionCommand';
 
 export default class BracketOptionEditing extends Plugin {
     static get requires() {
@@ -24,11 +23,6 @@ export default class BracketOptionEditing extends Plugin {
             viewToModelPositionOutsideModelElement(this.editor.model, viewElement => viewElement.hasClass('bracket-option'))
         );
 
-        // Subscribe to model changes so we can re-run the converters 
-        // when another user updates the model in Real-Time Collaboration.
-        // (Otherwise our custom React widgets won't update in response to other user's changes.)
-        this.runConvertersOnModelChange();
-
         // Enable "toggle bracket option" command when track changes are enabled.
         if (this.editor.plugins.has('TrackChangesEditing')) {
             const trackChangesEditing = this.editor.plugins.get('TrackChangesEditing');
@@ -36,12 +30,6 @@ export default class BracketOptionEditing extends Plugin {
                 this.enableTrackChangeIntegration(trackChangesEditing);
             }
         }
-    }
-
-    runConvertersOnModelChange() {
-        this.editor.model.document.on('change:data', () => {
-            reRunConverters(this.editor);
-        });
     }
 
     enableTrackChangeIntegration(trackChangesPlugin) {
@@ -101,6 +89,7 @@ export default class BracketOptionEditing extends Plugin {
             inheritAllFrom: '$inlineObject',
 
             allowAttributes: [
+                'optionGroupId', // ID of the bracket option group element to which this element belongs
                 'id',
                 'optedState' // 'undecided', 'optedIn', or 'optedOut'
             ]
@@ -136,6 +125,7 @@ export default class BracketOptionEditing extends Plugin {
                         id: viewElement.getAttribute('data-id'), // read custom attributes ("data-" prefix) from our span
                         optedState: viewElement.getAttribute('data-opted-state'),
                         isEditable: viewElement.getAttribute('data-editable') === 'true',
+                        optionGroupId: viewElement.getAttribute('data-option-group-id'),
                     });
 
                 // Insert child text and units-of-measure nodes that comprise the bracket option's content.
@@ -176,6 +166,7 @@ export default class BracketOptionEditing extends Plugin {
                     'data-id': modelElement.getAttribute('id'),
                     'data-opted-state': modelElement.getAttribute('optedState'),
                     'data-editable': modelElement.getAttribute('isEditable') === true ? 'true' : 'false',
+                    'data-option-group-id': modelElement.getAttribute('optionGroupId'),
                 });
 
                 if (modelElement.childCount > 0) {
@@ -216,13 +207,15 @@ export default class BracketOptionEditing extends Plugin {
                 //     </span>
                 // </span>
                 const id = modelElement.getAttribute('id')
+                const optionGroupId = modelElement.getAttribute('optionGroupId')
                 const optedState = modelElement.getAttribute('optedState')
                 const isEditable = modelElement.getAttribute('isEditable')
 
                 // The outermost <span class="bracket-option" data-id="..."></span> element.
                 const span = viewWriter.createContainerElement('span', {
                     class: 'bracket-option',
-                    'data-id': id
+                    'data-id': id,
+                    'data-option-group-id': optionGroupId,
                 })
 
                 // The inner <span class="bracket-option__react-wrapper"></span> element.

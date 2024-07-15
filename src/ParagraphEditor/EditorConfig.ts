@@ -1,5 +1,5 @@
-import { BracketContentElement } from "../model/bracketContentElement";
-import { OptedState } from "../model/optionItemState";
+import { BracketContentElement } from "./model/bracketContentElement";
+import { OptedState } from "./model/optedState";
 
 declare module "@ckeditor/ckeditor5-core" { // augment module to avoid TypeScript errors
     interface EditorConfig {
@@ -12,13 +12,6 @@ declare module "@ckeditor/ckeditor5-core" { // augment module to avoid TypeScrip
                 onOptedStateChanged: (newState: OptedState) => void,
                 domElement: HTMLElement,
             ) => void;
-        },
-        cloudServices?: {
-            tokenUrl: string,
-            webSocketUrl: string
-        },
-        presenceList?: {
-            container: HTMLElement | null,
         },
     }
 }

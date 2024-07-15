@@ -1,6 +1,6 @@
 import React from 'react';
-import { OptedState } from '../model/optionItemState';
-import { BracketContentElement, BracketContentElementType } from '../model/bracketContentElement';
+import { BracketContentElement, BracketContentElementType } from './model/bracketContentElement';
+import { OptedState } from './model/optedState';
 
 interface BracketOptionProps {
     id: string;

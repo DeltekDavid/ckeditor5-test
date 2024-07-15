@@ -1,9 +1,8 @@
-import { Plugin } from 'ckeditor5'
-import { toWidgetEditable, viewToModelPositionOutsideModelElement } from 'ckeditor5';
+import { Plugin, toWidgetEditable, viewToModelPositionOutsideModelElement } from 'ckeditor5';
 
+import { getChildByAttributeValue, reRunConverters } from '../utils';
 import CreateUnitsOfMeasureCommand from './createUnitsOfMeasureCommand';
 import ModifySelectedUnitsOfMeasureCommand from './modifySelectedUnitsOfMeasureCommand';
-import { getChildByAttributeValue } from '../utils';
 
 export default class UnitsOfMeasureEditing extends Plugin {
     init() {
@@ -18,6 +17,11 @@ export default class UnitsOfMeasureEditing extends Plugin {
             viewToModelPositionOutsideModelElement(this.editor.model, viewElement => viewElement.hasClass('units-of-measure'))
         );
 
+        // Subscribe to model changes so we can re-run the converters 
+        // when the model is updated via custom UI, or when another user updates the model in Real-Time Collaboration.
+        // (Otherwise our custom widgets won't update in response to other user's changes.)
+        this.runConvertersOnModelChange()
+
         // Enable "create units of measure" command when track changes are enabled.
         if (this.editor.plugins.has('TrackChangesEditing')) {
             const trackChangesEditing = this.editor.plugins.get('TrackChangesEditing');
@@ -25,6 +29,12 @@ export default class UnitsOfMeasureEditing extends Plugin {
                 this.enableTrackChangeIntegration(trackChangesEditing);
             }
         }
+    }
+
+    runConvertersOnModelChange() {
+        this.editor.model.document.on('change:data', () => {
+            reRunConverters(this.editor);
+        });
     }
 
     enableTrackChangeIntegration(trackChangesPlugin) {
@@ -71,7 +81,7 @@ export default class UnitsOfMeasureEditing extends Plugin {
             // allowed in places where $text is allowed (e.g. in paragraphs).
             inheritAllFrom: '$inlineObject',
 
-            allowAttributes: ['imperial', 'metric']
+            allowAttributes: ['id', 'optionGroupId', 'imperial', 'metric']
         })
     }
 
@@ -85,9 +95,16 @@ export default class UnitsOfMeasureEditing extends Plugin {
                 classes: 'units-of-measure',
             },
             model: (viewElement, { writer: modelWriter }) => {
+                const id = viewElement.getAttribute('data-id')
+                const optionGroupId = viewElement.getAttribute('data-option-group-id')
                 const imperialValue = (getChildByAttributeValue(viewElement, 'class', 'imperial'))?.getChild(0)?.data
                 const metricValue = (getChildByAttributeValue(viewElement, 'class', 'metric'))?.getChild(0)?.data
-                return modelWriter.createElement('unitsOfMeasure', { imperial: imperialValue, metric: metricValue });
+                return modelWriter.createElement('unitsOfMeasure', {
+                    id: id,
+                    imperial: imperialValue,
+                    metric: metricValue,
+                    ...(optionGroupId && { optionGroupId: optionGroupId })
+                });
             }
         })
 
@@ -110,26 +127,35 @@ export default class UnitsOfMeasureEditing extends Plugin {
             model: 'unitsOfMeasure',
             view: (modelItem, { writer: viewWriter }) => createUnitsOfMeasureView(modelItem, viewWriter, true, true)
         });
-
         // Helper method for both downcast converters.
         function createUnitsOfMeasureView(modelItem, viewWriter, includeImperial, includeMetric) {
-            const imperialText = modelItem.getAttribute('imperial')
-            const metricText = modelItem.getAttribute('metric')
-            const unitsElements = []
+            const id = modelItem.getAttribute('id');
+            const optionGroupId = modelItem.getAttribute('optionGroupId');
+            const imperialText = modelItem.getAttribute('imperial');
+            const metricText = modelItem.getAttribute('metric');
+            const unitsElements = [];
             if (includeImperial && !includeMetric) {
                 // "1 in.""
-                unitsElements.push(viewWriter.createContainerElement('span', { class: 'imperial' }, [viewWriter.createText(imperialText)]))
+                unitsElements.push(viewWriter.createContainerElement('span', { class: 'imperial' }, [viewWriter.createText(imperialText)]));
             } else if (!includeImperial && includeMetric) {
                 // "2.54 cm"
-                unitsElements.push(viewWriter.createContainerElement('span', { class: 'metric' }, [viewWriter.createText(metricText)]))
+                unitsElements.push(viewWriter.createContainerElement('span', { class: 'metric' }, [viewWriter.createText(metricText)]));
             } else {
                 // "1 in. (2.54 cm)"
-                unitsElements.push(viewWriter.createContainerElement('span', { class: 'imperial' }, [viewWriter.createText(imperialText)]))
+                unitsElements.push(viewWriter.createContainerElement('span', { class: 'imperial' }, [viewWriter.createText(imperialText)]));
                 unitsElements.push(viewWriter.createContainerElement('span', { class: 'metric' }, [viewWriter.createText(` (${metricText})`)]));
             }
-            const unitsOfMeasureView = viewWriter.createContainerElement('span', { class: 'units-of-measure' }, unitsElements)
+            const unitsOfMeasureView = viewWriter.createContainerElement(
+                'span',
+                {
+                    class: 'units-of-measure',
+                    'data-id': id,
+                    ...(optionGroupId && { 'data-option-group-id': optionGroupId })
+                },
+                unitsElements
+            );
 
-            return unitsOfMeasureView
+            return unitsOfMeasureView;
         }
     }
 }
