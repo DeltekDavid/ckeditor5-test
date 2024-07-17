@@ -1,10 +1,10 @@
 import { OptionItemState, TextContentElement } from "@deltek/specification-client/core/Models/textContentElement";
-import { elementsToEditorParagraph } from "./contentUtils";
+import { editorDataToElements, elementsToEditorData, extractSuggestions, TrackChangeSuggestion } from "./contentUtils";
 
-describe("elementsToEditorParagraph", () => {
+describe("elementsToEditorData", () => {
     it.each([
-        // Normal text
         [
+            "Normal text",
             [{
                 id: "id_text",
                 type: "Text",
@@ -20,11 +20,59 @@ describe("elementsToEditorParagraph", () => {
                 changeType: null,
                 authoredUserId: "",
             }],
-            "<p><span class='paragraph-text' data-id='id_text'>Hello World</span></p>",
+            "<span class='paragraph-text' data-id='id_text'>Hello World</span>",
         ],
-
-        // Hyperlink
         [
+            "Normal text with tracked insert",
+            [{
+                id: "id_text_1",
+                type: "Text",
+                text: "Hello ",
+                isOptionItem: false,
+                imperialUnits: "",
+                metricUnits: "",
+                fieldId: "",
+                elements: [],
+                optionItemState: null,
+                hyperlinkUrl: "",
+                placeholderText: "",
+                changeType: null,
+                authoredUserId: "",
+            } as TextContentElement,
+            {
+                id: "id_text_2",
+                type: "Text",
+                text: "there, ",
+                isOptionItem: false,
+                imperialUnits: "",
+                metricUnits: "",
+                fieldId: "",
+                elements: [],
+                optionItemState: null,
+                hyperlinkUrl: "",
+                placeholderText: "",
+                changeType: "ADDED",
+                authoredUserId: "user-id-1",
+            } as TextContentElement,
+            {
+                id: "id_text_3",
+                type: "Text",
+                text: "World!",
+                isOptionItem: false,
+                imperialUnits: "",
+                metricUnits: "",
+                fieldId: "",
+                elements: [],
+                optionItemState: null,
+                hyperlinkUrl: "",
+                placeholderText: "",
+                changeType: null,
+                authoredUserId: "",
+            } as TextContentElement],
+            "<span class='paragraph-text' data-id='id_text_1'>Hello </span><span class='paragraph-text' data-id='id_text_2'><suggestion-start name='insertion:id_text_2:user-id-1'></suggestion-start>there, <suggestion-end name='insertion:id_text_2:user-id-1'></suggestion-end></span><span class='paragraph-text' data-id='id_text_3'>World!</span>",
+        ],
+        [
+            "Hyperlink",
             [{
                 id: "id_hyperlink",
                 type: "Hyperlink",
@@ -40,11 +88,10 @@ describe("elementsToEditorParagraph", () => {
                 changeType: null,
                 authoredUserId: ""
             }],
-            "<p><a href='https://github.com' data-id='id_hyperlink'>GitHub</a></p>",
+            "<a href='https://github.com' data-id='id_hyperlink'>GitHub</a>",
         ],
-
-        // Units of measure
         [
+            "Units of measure",
             [{
                 id: "id_units_of_measure",
                 type: "UnitsOfMeasure",
@@ -60,11 +107,10 @@ describe("elementsToEditorParagraph", () => {
                 changeType: null,
                 authoredUserId: ""
             }],
-            "<p><span class='units-of-measure' data-id='id_units_of_measure'><span class='imperial'>lbs</span><span class='metric'>kg</span></span></p>",
+            "<span class='units-of-measure' data-id='id_units_of_measure'><span class='imperial'>lbs</span><span class='metric'>kg</span></span>",
         ],
-
-        // Unknown type
         [
+            "Text content element with no type",
             [{
                 id: "id_unknown",
                 type: "Unknown",
@@ -80,11 +126,10 @@ describe("elementsToEditorParagraph", () => {
                 imperialUnits: "",
                 metricUnits: "",
             }],
-            "<p></p>",
+            "",
         ],
-
-        // Undecided option
         [
+            "Undecided option item",
             [{
                 id: 'id_option',
                 type: 'SelectionOption',
@@ -100,11 +145,10 @@ describe("elementsToEditorParagraph", () => {
                 changeType: null,
                 authoredUserId: '',
             }],
-            "<p><span class='bracket-option' data-id='id_option' data-opted-state='UNDECIDED' data-editable='false'>option 1</span></p>",
+            "<span class='bracket-option' data-id='id_option' data-opted-state='UNDECIDED' data-editable='false'>option 1</span>",
         ],
-
-        // Opted-in option
         [
+            "Opted-in option item",
             [{
                 id: 'id_option',
                 type: 'SelectionOption',
@@ -120,11 +164,10 @@ describe("elementsToEditorParagraph", () => {
                 changeType: null,
                 authoredUserId: '',
             }],
-            "<p><span class='bracket-option' data-id='id_option' data-opted-state='OPTED_IN' data-editable='false'>option 1</span></p>",
+            "<span class='bracket-option' data-id='id_option' data-opted-state='OPTED_IN' data-editable='false'>option 1</span>",
         ],
-
-        // Opted-out option
         [
+            "Opted-out option item",
             [{
                 id: 'id_option',
                 type: 'SelectionOption',
@@ -140,11 +183,10 @@ describe("elementsToEditorParagraph", () => {
                 changeType: null,
                 authoredUserId: '',
             }],
-            "<p><span class='bracket-option' data-id='id_option' data-opted-state='OPTED_OUT' data-editable='false'>option 1</span></p>",
+            "<span class='bracket-option' data-id='id_option' data-opted-state='OPTED_OUT' data-editable='false'>option 1</span>",
         ],
-
-        // Inactive option
         [
+            "Inactive option item",
             [{
                 id: 'id_option',
                 type: 'SelectionOption',
@@ -160,11 +202,10 @@ describe("elementsToEditorParagraph", () => {
                 changeType: null,
                 authoredUserId: '',
             }],
-            "<p><span class='bracket-option' data-id='id_option' data-opted-state='OPTED_OUT' data-editable='false'>option 1</span></p>",
+            "<span class='bracket-option' data-id='id_option' data-opted-state='OPTED_OUT' data-editable='false'>option 1</span>",
         ],
-
-        // Undecided replacement (fill-in-the-blank) option
         [
+            "Undecided replacement option",
             [{
                 id: 'id_option',
                 type: 'ReplacementOption',
@@ -180,11 +221,10 @@ describe("elementsToEditorParagraph", () => {
                 changeType: null,
                 authoredUserId: '',
             }],
-            "<p><span class='bracket-option' data-id='id_option' data-opted-state='UNDECIDED' data-editable='true'>custom value</span></p>",
+            "<span class='bracket-option' data-id='id_option' data-opted-state='UNDECIDED' data-editable='true'>custom value</span>",
         ],
-
-        // Opted-in replacement option
         [
+            "Opted-in replacement option",
             [{
                 id: 'id_option',
                 type: 'ReplacementOption',
@@ -200,11 +240,10 @@ describe("elementsToEditorParagraph", () => {
                 changeType: null,
                 authoredUserId: '',
             }],
-            "<p><span class='bracket-option' data-id='id_option' data-opted-state='OPTED_IN' data-editable='true'>custom value</span></p>",
+            "<span class='bracket-option' data-id='id_option' data-opted-state='OPTED_IN' data-editable='true'>custom value</span>",
         ],
-
-        // Opted-out replacement option
         [
+            "Opted-out replacement option",
             [{
                 id: 'id_option',
                 type: 'ReplacementOption',
@@ -220,11 +259,10 @@ describe("elementsToEditorParagraph", () => {
                 changeType: null,
                 authoredUserId: '',
             }],
-            "<p><span class='bracket-option' data-id='id_option' data-opted-state='OPTED_OUT' data-editable='true'>custom value</span></p>",
+            "<span class='bracket-option' data-id='id_option' data-opted-state='OPTED_OUT' data-editable='true'>custom value</span>",
         ],
-
-        // Inactive replacement option
         [
+            "Inactive replacement option",
             [{
                 id: 'id_option',
                 type: 'ReplacementOption',
@@ -240,11 +278,10 @@ describe("elementsToEditorParagraph", () => {
                 changeType: null,
                 authoredUserId: '',
             }],
-            "<p><span class='bracket-option' data-id='id_option' data-opted-state='OPTED_OUT' data-editable='true'>custom value</span></p>",
+            "<span class='bracket-option' data-id='id_option' data-opted-state='OPTED_OUT' data-editable='true'>custom value</span>",
         ],
-
-        // Option item group, two options with a space between them
         [
+            "Option item group, two options with a space between them",
             [{
                 id: 'id_option_group',
                 type: 'OptionGroup',
@@ -306,11 +343,10 @@ describe("elementsToEditorParagraph", () => {
                 changeType: null,
                 authoredUserId: '',
             }],
-            "<p><span class='bracket-option' data-id='id_option_1' data-option-group-id='id_option_group' data-opted-state='UNDECIDED' data-editable='false'>option 1</span><span class='paragraph-text' data-id='id_space' data-option-group-id='id_option_group'> </span><span class='bracket-option' data-id='id_option_2' data-option-group-id='id_option_group' data-opted-state='UNDECIDED' data-editable='true'>custom value</span></p>",
+            "<span class='bracket-option' data-id='id_option_1' data-option-group-id='id_option_group' data-opted-state='UNDECIDED' data-editable='false'>option 1</span><span class='paragraph-text' data-id='id_space' data-option-group-id='id_option_group'> </span><span class='bracket-option' data-id='id_option_2' data-option-group-id='id_option_group' data-opted-state='UNDECIDED' data-editable='true'>custom value</span>",
         ],
-
-        // Option item with nested units-of-measure and normal text
         [
+            "Option item with nested units-of-measure and normal text",
             [{
                 id: 'id_option',
                 type: 'SelectionOption',
@@ -372,9 +408,271 @@ describe("elementsToEditorParagraph", () => {
                 changeType: null,
                 authoredUserId: '',
             }],
-            "<p><span class='bracket-option' data-id='id_option' data-opted-state='OPTED_IN' data-editable='false'><span class='nested-units-of-measure' data-id='id_nested_units_1'><span class='imperial'>1 lb</span><span class='metric'>0.453592 kg</span></span><span class='paragraph-text' data-id='id_nested_text'> to </span><span class='nested-units-of-measure' data-id='id_nested_units_2'><span class='imperial'>3 lbs</span><span class='metric'>1.36078 kg</span></span></span></p>"
+            "<span class='bracket-option' data-id='id_option' data-opted-state='OPTED_IN' data-editable='false'><span class='nested-units-of-measure' data-id='id_nested_units_1'><span class='imperial'>1 lb</span><span class='metric'>0.453592 kg</span></span><span class='paragraph-text' data-id='id_nested_text'> to </span><span class='nested-units-of-measure' data-id='id_nested_units_2'><span class='imperial'>3 lbs</span><span class='metric'>1.36078 kg</span></span></span>"
         ]
-    ])("returns the expected editor data for %p", (textContentElements: Partial<TextContentElement>[], expected: string) => {
-        expect(elementsToEditorParagraph(textContentElements)).toEqual(expected);
+    ])("converts text content elements representing %s to editor data", (description: string, textContentElements: Partial<TextContentElement>[], expected: string) => {
+        expect(elementsToEditorData(textContentElements)).toEqual(expected);
+    });
+
+    it.each([
+        [
+            "Normal text",
+            "<p><span class='paragraph-text' data-id='id_text'>Hello World</span></p>",
+            [{
+                id: "id_text",
+                type: "Text",
+                text: "Hello World",
+                isOptionItem: false,
+                imperialUnits: "",
+                metricUnits: "",
+                fieldId: "",
+                elements: [],
+                optionItemState: null,
+                hyperlinkUrl: "",
+                placeholderText: "",
+                changeType: null,
+                authoredUserId: "",
+            }],
+        ],
+        [
+            "Hyperlink",
+            "<p><a href='https://github.com' data-id='id_hyperlink'>GitHub</a></p>",
+            [{
+                id: "id_hyperlink",
+                type: "Hyperlink",
+                text: "GitHub",
+                hyperlinkUrl: "https://github.com",
+                isOptionItem: false,
+                imperialUnits: "",
+                metricUnits: "",
+                fieldId: "",
+                elements: [],
+                optionItemState: null,
+                placeholderText: "",
+                changeType: null,
+                authoredUserId: ""
+            }],
+        ],
+        [
+            "Units of measure",
+            "<p><span class='units-of-measure' data-id='id_units_of_measure'><span class='imperial'>lbs</span><span class='metric'>kg</span></span></p>",
+            [{
+                id: "id_units_of_measure",
+                type: "UnitsOfMeasure",
+                imperialUnits: "lbs",
+                metricUnits: "kg",
+                isOptionItem: false,
+                fieldId: "",
+                text: "",
+                elements: [],
+                optionItemState: null,
+                hyperlinkUrl: "",
+                placeholderText: "",
+                changeType: null,
+                authoredUserId: ""
+            }],
+        ],
+        [
+            "Option item",
+            "<p><span class='bracket-option' data-id='id_option' data-opted-state='OPTED_IN' data-editable='false'>option 1</span></p>",
+            [{
+                id: 'id_option',
+                type: 'SelectionOption',
+                text: 'option 1',
+                isOptionItem: true,
+                imperialUnits: '',
+                metricUnits: '',
+                hyperlinkUrl: '',
+                fieldId: '',
+                elements: [],
+                optionItemState: 'OptedIn' as OptionItemState,
+                placeholderText: '',
+                changeType: null,
+                authoredUserId: '',
+            }],
+        ],
+        // TODO
+        // [
+        //     "Option item group",
+        //     "<p><span class='bracket-option' data-id='id_option_1' data-option-group-id='id_option_group' data-opted-state='UNDECIDED' data-editable='false'>option 1</span><span class='paragraph-text' data-id='id_space' data-option-group-id='id_option_group'> </span><span class='bracket-option' data-id='id_option_2' data-option-group-id='id_option_group' data-opted-state='UNDECIDED' data-editable='true'>custom value</span></p>",
+        //     [{
+        //         id: 'id_option_group',
+        //         type: 'OptionGroup',
+        //         text: '',
+        //         isOptionItem: false,
+        //         imperialUnits: '',
+        //         metricUnits: '',
+        //         hyperlinkUrl: '',
+        //         fieldId: '',
+        //         elements: [
+        //             {
+        //                 id: 'id_option_1',
+        //                 type: 'SelectionOption',
+        //                 text: 'option 1',
+        //                 isOptionItem: true,
+        //                 imperialUnits: '',
+        //                 metricUnits: '',
+        //                 hyperlinkUrl: '',
+        //                 fieldId: '',
+        //                 elements: [],
+        //                 optionItemState: null,
+        //                 placeholderText: '',
+        //                 changeType: null,
+        //                 authoredUserId: '',
+        //             },
+        //             {
+        //                 id: "id_space",
+        //                 type: "Text",
+        //                 text: " ",
+        //                 isOptionItem: false,
+        //                 imperialUnits: "",
+        //                 metricUnits: "",
+        //                 fieldId: "",
+        //                 elements: [],
+        //                 optionItemState: null,
+        //                 hyperlinkUrl: "",
+        //                 placeholderText: "",
+        //                 changeType: null,
+        //                 authoredUserId: "",
+        //             },
+        //             {
+        //                 id: 'id_option_2',
+        //                 type: 'ReplacementOption',
+        //                 text: 'custom value',
+        //                 isOptionItem: true,
+        //                 imperialUnits: '',
+        //                 metricUnits: '',
+        //                 hyperlinkUrl: '',
+        //                 fieldId: '',
+        //                 elements: [],
+        //                 optionItemState: null,
+        //                 placeholderText: '',
+        //                 changeType: null,
+        //                 authoredUserId: '',
+        //             },
+        //         ],
+        //         optionItemState: null,
+        //         placeholderText: '',
+        //         changeType: null,
+        //         authoredUserId: '',
+        //     }],
+        // ],
+        [
+            "Unsupported element",
+            "<p><span class='unsupported-element'>Unsupported element</span></p>",
+            [],
+        ],
+    ])("converts editor data representing %s to text content elements", (description: string, editorData: string, expected: Partial<TextContentElement>[]) => {
+        expect(editorDataToElements(editorData)).toEqual(expected);
+    });
+});
+
+describe("elementsToSuggestions", () => {
+    it.each([
+        [
+            "Empty array",
+            [],
+            [],
+        ],
+        [
+            "Single text content",
+            [
+                {
+                    id: "id_text",
+                    type: "Text",
+                    text: "Hello World",
+                    isOptionItem: false,
+                    imperialUnits: "",
+                    metricUnits: "",
+                    fieldId: "",
+                    elements: [],
+                    optionItemState: null,
+                    hyperlinkUrl: "",
+                    placeholderText: "",
+                    changeType: null,
+                    authoredUserId: "",
+                } as TextContentElement,
+            ],
+            [],
+        ],
+        [
+            "Single track change",
+            [
+                {
+                    id: "id_text",
+                    type: "Text",
+                    text: "Hello World",
+                    isOptionItem: false,
+                    imperialUnits: "",
+                    metricUnits: "",
+                    fieldId: "",
+                    elements: [],
+                    optionItemState: null,
+                    hyperlinkUrl: "",
+                    placeholderText: "",
+                    changeType: "ADDED",
+                    authoredUserId: "user123",
+                } as TextContentElement,
+            ],
+            [
+                {
+                    id: "id_text",
+                    type: "insertion",
+                    authorId: "user123",
+                    createdAt: expect.any(Date),
+                },
+            ],
+        ],
+        [
+            "Multiple track changes",
+            [
+                {
+                    id: "id_text",
+                    type: "Text",
+                    text: "Hello World",
+                    isOptionItem: false,
+                    imperialUnits: "",
+                    metricUnits: "",
+                    fieldId: "",
+                    elements: [],
+                    optionItemState: null,
+                    hyperlinkUrl: "",
+                    placeholderText: "",
+                    changeType: "ADDED",
+                    authoredUserId: "user123",
+                } as TextContentElement,
+                {
+                    id: "id_hyperlink",
+                    type: "Hyperlink",
+                    text: "GitHub",
+                    hyperlinkUrl: "https://github.com",
+                    isOptionItem: false,
+                    imperialUnits: "",
+                    metricUnits: "",
+                    fieldId: "",
+                    elements: [],
+                    optionItemState: null,
+                    placeholderText: "",
+                    changeType: "DELETED",
+                    authoredUserId: "user456",
+                } as TextContentElement,
+            ],
+            [
+                {
+                    id: "id_text",
+                    type: "insertion",
+                    authorId: "user123",
+                    createdAt: expect.any(Date),
+                },
+                {
+                    id: "id_hyperlink",
+                    type: "deletion",
+                    authorId: "user456",
+                    createdAt: expect.any(Date),
+                },
+            ],
+        ],
+    ])("Extracts suggestions from text content elements containing %s", (description: string, textContentElements: Partial<TextContentElement>[], expected: TrackChangeSuggestion[]) => {
+        expect(extractSuggestions(textContentElements)).toEqual(expected);
     });
 });

@@ -101,7 +101,18 @@ const content6 = `<p>6. Door height: <span class="bracket-option" data-id="optio
     <span class="bracket-option" data-id="option-2" data-opted-state="UNDECIDED">
     Between <span class='nested-units-of-measure'><span class='imperial'>96" x 84"</span><span class='metric'>244 cm x 213 cm</span></span> 
     and <span class='nested-units-of-measure'><span class='imperial'>120" x 84"</span><span class='metric'>305 cm x 213 cm</span></span></span>.</p>`;
-const content7 = "<p><span class='paragraph-text' data-id='123'>Hello world!</span></p>";
+const content7 = "<p><span class='paragraph-text' data-id='123'>Hello <suggestion-start name='insertion:suggestion-1:user-2'></suggestion-start>world!<suggestion-end name='insertion:suggestion-1:user-2'></suggestion-end></span></p>";
+const content7Suggestions = [
+    {
+        id: 'suggestion-1',
+        type: 'insertion',
+        authorId: 'user-2',
+        createdAt: new Date( 2019, 1, 13, 11, 20, 48 ),
+        data: null,
+        attributes: {}
+    }
+]
+
 
 const App: React.FC = () => {
     const presenceListElementRef = useRef<HTMLDivElement>(null);
@@ -128,7 +139,7 @@ const App: React.FC = () => {
                 >
                     <div className="editor-container">
                         <div className="editor-instance">
-                            <ParagraphEditor initialData={content7} />
+                            <ParagraphEditor initialData={content7} initialSuggestions={content7Suggestions} />
                         </div>
                     </div>
                 </CKEditorContext>
