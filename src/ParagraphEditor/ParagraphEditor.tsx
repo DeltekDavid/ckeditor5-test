@@ -1,12 +1,14 @@
 import CKEditorInspector from '@ckeditor/ckeditor5-inspector';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import { ClassicEditor, Essentials, Paragraph, Undo } from 'ckeditor5';
-import { Comments, TrackChanges, Users } from 'ckeditor5-premium-features';
+import { Comments, TrackChanges } from 'ckeditor5-premium-features';
+import { processEnv } from 'components/configuration/environmentVariables';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import BracketOption from './BracketOption';
 import BracketOptions from './ckeditor/bracketOptions/bracketOptions';
 import TextIds from './ckeditor/textIds/textIds';
+import TrackChangesIntegration from './ckeditor/trackChangesIntegration/trackChangesIntegration';
 import UnitsOfMeasure from './ckeditor/unitsOfMeasure/unitsOfMeasure';
 import UsersIntegration from './ckeditor/usersIntegration/usersIntegration';
 import { TrackChangeSuggestion } from './contentUtils';
@@ -39,6 +41,7 @@ const ParagraphEditor: React.FC<EditorProps> = (
             editor={ClassicEditor}
             config={{
                 licenseKey: process.env.REACT_APP_CKEditorLicenseKey || '',
+                initialSuggestions: initialSuggestions,
                 bracketOption: {
                     bracketOptionRenderer: (
                         id: string,
@@ -65,6 +68,7 @@ const ParagraphEditor: React.FC<EditorProps> = (
                     UsersIntegration,
                     Comments,
                     TrackChanges,
+                    TrackChangesIntegration,
                     TextIds,
                     UnitsOfMeasure,
                     BracketOptions,
@@ -83,28 +87,6 @@ const ParagraphEditor: React.FC<EditorProps> = (
             }}
             data={initialData}
             onReady={editor => {
-                // Load initial track changes (suggestions), if any.
-                if (initialSuggestions?.length) {
-                    // First populate the users from the suggestions
-                    const usersIntegrationPlugin = editor.plugins.get('Users') as Users;
-                    for (const suggestion of initialSuggestions) {
-                        usersIntegrationPlugin.addUser({
-                            id: suggestion.authorId,
-                            name: 'Unknown User',
-                        })
-                    }
-
-                    // Now add the suggestions
-                    const trackChangesPlugin = editor.plugins.get('TrackChanges') as TrackChanges;
-                    for (const suggestion of initialSuggestions) {
-                        trackChangesPlugin.addSuggestion({
-                            ...suggestion,
-                            data: null,
-                            attributes: {}
-                        });
-                    }
-                }
-
                 // Enable track changes by default (TODO make it a prop we pass in)
                 editor.execute('trackChanges');
 
@@ -112,6 +94,8 @@ const ParagraphEditor: React.FC<EditorProps> = (
                 // (Our tables are treated as a standalone unit, like our paragraphs)
                 const widgetTypeAroundPlugin = editor.plugins.get('WidgetTypeAround');
                 widgetTypeAroundPlugin?.forceDisabled('OurApplication');
+
+                // TODO define current user
 
                 // Attach inspector for debugging purposes.
                 if (process.env.NODE_ENV === 'development') {
